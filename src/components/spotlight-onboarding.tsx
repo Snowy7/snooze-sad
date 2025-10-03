@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { ArrowRight, ArrowLeft, X, CheckCircle, Sparkles } from "lucide-react"
+import { ArrowRight, ArrowLeft, X, CheckCircle, Hand, Sparkles } from "lucide-react"
 import { useRouter } from "next/navigation"
 
 interface OnboardingStep {
@@ -54,6 +54,13 @@ const steps: OnboardingStep[] = [
     targetSelector: "[data-onboarding='stats']",
     position: "bottom",
     shortcut: "⇧⌘A Analytics • ⇧⌘H Habits • ⇧⌘C Calendar"
+  },
+  {
+    id: "create-workspace",
+    title: "Create Your First Workspace",
+    description: "Workspaces help you organize projects by team, department, or personal goals. Fill out this form to create your first one!",
+    targetSelector: "[data-onboarding='workspace-form']",
+    position: "right"
   }
 ]
 
@@ -68,10 +75,23 @@ export function SpotlightOnboarding() {
     const dismissed = localStorage.getItem("onboarding_dismissed")
     
     if (!hasSeenOnboarding && !dismissed) {
-      // Delay to let the page render
-      setTimeout(() => setIsActive(true), 500)
+      // Make sure we're on the dashboard before starting onboarding
+      const currentPath = typeof window !== 'undefined' ? window.location.pathname : ''
+      if (currentPath !== '/dashboard') {
+        // Navigate to dashboard, but don't show onboarding yet
+        router.push('/dashboard')
+        return
+      }
+      
+      // Wait for dashboard to fully render before showing onboarding
+      setTimeout(() => {
+        // Double-check we're still on dashboard
+        if (window.location.pathname === '/dashboard') {
+          setIsActive(true)
+        }
+      }, 1000)
     }
-  }, [])
+  }, [router])
 
   useEffect(() => {
     if (!isActive) return
@@ -100,7 +120,18 @@ export function SpotlightOnboarding() {
 
   const handleNext = () => {
     if (currentStep < steps.length - 1) {
-      setCurrentStep(currentStep + 1)
+      const nextStep = currentStep + 1
+      
+      // If moving to the "Create Workspace" step (last step), navigate first
+      if (nextStep === steps.length - 1) {
+        router.push("/workspaces/new")
+        // Wait for navigation and form render before showing the step
+        setTimeout(() => {
+          setCurrentStep(nextStep)
+        }, 500)
+      } else {
+        setCurrentStep(nextStep)
+      }
     } else {
       handleComplete()
     }
@@ -119,10 +150,9 @@ export function SpotlightOnboarding() {
 
   const handleComplete = async () => {
     localStorage.setItem("spotlight_onboarding_completed", "true")
-    setIsActive(false)
     
-    // After onboarding, check if user needs to create a workspace
-    // The layout will handle the redirect
+    // Just close onboarding - navigation already happened when reaching step 6
+    setIsActive(false)
   }
 
   if (!isActive) return null
@@ -230,11 +260,11 @@ export function SpotlightOnboarding() {
                   <rect x="0" y="0" width="100%" height="100%" fill="white" />
                   {/* Black cutout for the spotlight (reveals the content) */}
                   <rect
-                    x={targetRect.left - 8}
-                    y={targetRect.top - 8}
-                    width={targetRect.width + 16}
-                    height={targetRect.height + 16}
-                    rx="12"
+                    x={targetRect.left - 16}
+                    y={targetRect.top - 16}
+                    width={targetRect.width + 32}
+                    height={targetRect.height + 32}
+                    rx="16"
                     fill="black"
                   />
                 </mask>
@@ -260,8 +290,8 @@ export function SpotlightOnboarding() {
               WebkitBackdropFilter: 'blur(4px)',
               maskImage: `radial-gradient(
                 circle at ${targetRect.left + targetRect.width / 2}px ${targetRect.top + targetRect.height / 2}px,
-                transparent ${Math.max(targetRect.width, targetRect.height) / 2 + 20}px,
-                black ${Math.max(targetRect.width, targetRect.height) / 2 + 30}px
+                transparent ${Math.max(targetRect.width, targetRect.height) / 2 + 80}px,
+                black ${Math.max(targetRect.width, targetRect.height) / 2 + 120}px
               )`
             }}
           />
@@ -373,7 +403,12 @@ export function SpotlightOnboarding() {
                   {isFirstStep ? (
                     <>
                       {step.title}
-                      <Sparkles className="wave-emoji h-6 w-6 text-primary" />
+                      <Hand className="wave-emoji h-6 w-6 text-primary" />
+                    </>
+                  ) : isLastStep ? (
+                    <>
+                      {step.title}
+                      <Sparkles className="h-6 w-6 text-primary animate-pulse" />
                     </>
                   ) : (
                     step.title

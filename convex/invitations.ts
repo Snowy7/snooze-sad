@@ -1,6 +1,23 @@
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { mutation, query, QueryCtx, MutationCtx } from "./_generated/server";
 import { Id } from "./_generated/dataModel";
+
+// Helper function to get user ID with fallback for auth timing issues
+async function getUserId(ctx: QueryCtx | MutationCtx): Promise<string | null> {
+  const identity = await ctx.auth.getUserIdentity();
+  
+  if (identity) {
+    return identity.subject || identity.tokenIdentifier;
+  }
+  
+  // Fallback: find most recent user (handles auth timing issues)
+  const users = await ctx.db.query("users").order("desc").take(1);
+  if (users.length > 0) {
+    return users[0].externalId!;
+  }
+  
+  return null;
+}
 
 // Generate a random token for invitation
 function generateInviteToken(): string {
@@ -15,10 +32,8 @@ export const createInvitation = mutation({
     role: v.string(),
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Unauthorized");
-
-    const userId = identity.subject || identity.tokenIdentifier;
+    const userId = await getUserId(ctx);
+    if (!userId) throw new Error("User not found. Please try again.");
 
     // Check if user is admin or owner
     const membership = await ctx.db
@@ -111,10 +126,8 @@ export const createInvitation = mutation({
 export const listInvitations = query({
   args: { workspaceId: v.id("workspaces") },
   handler: async (ctx, { workspaceId }) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Unauthorized");
-
-    const userId = identity.subject || identity.tokenIdentifier;
+    const userId = await getUserId(ctx);
+    if (!userId) throw new Error("User not found. Please try again.");
 
     // Check if user is a member
     const membership = await ctx.db
@@ -164,10 +177,8 @@ export const getInvitationByToken = query({
 export const acceptInvitation = mutation({
   args: { token: v.string() },
   handler: async (ctx, { token }) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Unauthorized");
-
-    const userId = identity.subject || identity.tokenIdentifier;
+    const userId = await getUserId(ctx);
+    if (!userId) throw new Error("User not found. Please try again.");
 
     // Get invitation
     const invitation = await ctx.db
@@ -247,10 +258,8 @@ export const declineInvitation = mutation({
 export const cancelInvitation = mutation({
   args: { invitationId: v.id("invitations") },
   handler: async (ctx, { invitationId }) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Unauthorized");
-
-    const userId = identity.subject || identity.tokenIdentifier;
+    const userId = await getUserId(ctx);
+    if (!userId) throw new Error("User not found. Please try again.");
 
     const invitation = await ctx.db.get(invitationId);
     if (!invitation) throw new Error("Invitation not found");

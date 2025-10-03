@@ -1,23 +1,26 @@
 "use client"
 
 import { useState } from "react"
-import { useMutation } from "convex/react"
+import { useMutation, useQuery } from "convex/react"
 import { api } from "@/lib/convex"
 import { useOwnerId } from "@/hooks/use-owner"
+import { useWorkspace } from "@/hooks/use-workspace"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 import { toast } from "sonner"
-import { ArrowLeft } from "lucide-react"
+import { ArrowLeft, AlertCircle } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 
 export default function NewProjectPage() {
   const router = useRouter()
   const ownerId = useOwnerId()
+  const { currentWorkspaceId, workspaces, currentWorkspace } = useWorkspace()
   const createProject = useMutation(api.functions.upsertProject)
   
   const [name, setName] = useState("")
@@ -34,6 +37,11 @@ export default function NewProjectPage() {
       return
     }
 
+    if (!currentWorkspaceId) {
+      toast.error("Please select a workspace from the sidebar")
+      return
+    }
+
     toast.promise(
       createProject({
         id: null,
@@ -43,6 +51,7 @@ export default function NewProjectPage() {
         startDate,
         endDate,
         ownerId,
+        workspaceId: currentWorkspaceId,
       }).then((id) => {
         router.push(`/projects/${id}`)
       }),
@@ -76,6 +85,32 @@ export default function NewProjectPage() {
 
       <Card className="p-8">
         <h1 className="text-2xl font-bold mb-6">Create New Project</h1>
+        
+        {workspaces.length === 0 ? (
+          <Alert className="mb-6">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              You need to create a workspace first before creating projects.{" "}
+              <Link href="/workspaces/new" className="underline font-medium">
+                Create Workspace
+              </Link>
+            </AlertDescription>
+          </Alert>
+        ) : !currentWorkspaceId ? (
+          <Alert className="mb-6">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              Please select a workspace from the sidebar before creating a project.
+            </AlertDescription>
+          </Alert>
+        ) : (
+          <Alert className="mb-6 bg-blue-500/10 border-blue-500/20">
+            <AlertCircle className="h-4 w-4 text-blue-500" />
+            <AlertDescription className="text-blue-600 dark:text-blue-400">
+              Creating project in <strong>{currentWorkspace?.name}</strong> workspace
+            </AlertDescription>
+          </Alert>
+        )}
         
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>

@@ -1,5 +1,21 @@
 import { MarketingNavbar } from "@/components/marketing/navbar"
 import Link from "next/link"
+import { Metadata } from "next"
+
+export const metadata: Metadata = {
+  title: 'Terms of Service',
+  description: 'Read the Terms of Service for using Snooze. Learn about your rights and responsibilities when using our productivity application.',
+  keywords: ['terms of service', 'terms and conditions', 'user agreement', 'legal'],
+  openGraph: {
+    title: 'Terms of Service - Snooze',
+    description: 'Terms of Service for using Snooze productivity application.',
+    url: 'https://snooze.app/terms',
+    type: 'website',
+  },
+  alternates: {
+    canonical: 'https://snooze.app/terms',
+  },
+};
 
 export default function TermsPage() {
   return (

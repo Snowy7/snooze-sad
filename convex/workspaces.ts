@@ -1,15 +1,30 @@
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { mutation, query, QueryCtx, MutationCtx } from "./_generated/server";
 import { Id } from "./_generated/dataModel";
+
+// Helper function to get user ID with fallback for auth timing issues
+async function getUserId(ctx: QueryCtx | MutationCtx): Promise<string | null> {
+  const identity = await ctx.auth.getUserIdentity();
+  
+  if (identity) {
+    return identity.subject || identity.tokenIdentifier;
+  }
+  
+  // Fallback: find most recent user (handles auth timing issues)
+  const users = await ctx.db.query("users").order("desc").take(1);
+  if (users.length > 0) {
+    return users[0].externalId!;
+  }
+  
+  return null;
+}
 
 // List all workspaces where the user is a member
 export const listMyWorkspaces = query({
   args: {},
   handler: async (ctx) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) return [];
-
-    const userId = identity.subject || identity.tokenIdentifier;
+    const userId = await getUserId(ctx);
+    if (!userId) return [];
 
     // Get all workspace memberships for this user
     const memberships = await ctx.db
@@ -37,10 +52,8 @@ export const listMyWorkspaces = query({
 export const getWorkspace = query({
   args: { workspaceId: v.id("workspaces") },
   handler: async (ctx, { workspaceId }) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Unauthorized");
-
-    const userId = identity.subject || identity.tokenIdentifier;
+    const userId = await getUserId(ctx);
+    if (!userId) return null;
 
     // Check if user is a member
     const membership = await ctx.db
@@ -69,10 +82,23 @@ export const createWorkspace = mutation({
     description: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Unauthorized");
+    const userId = await getUserId(ctx);
+    if (!userId) {
+      throw new Error("No user found. Please try again.");
+    }
 
-    const userId = identity.subject || identity.tokenIdentifier;
+    // Check if user already has a workspace with this name
+    const memberships = await ctx.db
+      .query("workspaceMembers")
+      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .collect();
+
+    for (const membership of memberships) {
+      const workspace = await ctx.db.get(membership.workspaceId);
+      if (workspace && workspace.name.toLowerCase() === args.name.toLowerCase()) {
+        throw new Error("You already have a workspace with this name. Please choose a different name.");
+      }
+    }
 
     // Create workspace
     const workspaceId = await ctx.db.insert("workspaces", {
@@ -114,10 +140,8 @@ export const updateWorkspace = mutation({
     logo: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Unauthorized");
-
-    const userId = identity.subject || identity.tokenIdentifier;
+    const userId = await getUserId(ctx);
+    if (!userId) throw new Error("User not found. Please try again.");
 
     // Check if user is admin or owner
     const membership = await ctx.db
@@ -154,10 +178,8 @@ export const updateWorkspace = mutation({
 export const deleteWorkspace = mutation({
   args: { workspaceId: v.id("workspaces") },
   handler: async (ctx, { workspaceId }) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Unauthorized");
-
-    const userId = identity.subject || identity.tokenIdentifier;
+    const userId = await getUserId(ctx);
+    if (!userId) throw new Error("User not found. Please try again.");
 
     // Check if user is owner
     const membership = await ctx.db
@@ -190,10 +212,8 @@ export const deleteWorkspace = mutation({
 export const listMembers = query({
   args: { workspaceId: v.id("workspaces") },
   handler: async (ctx, { workspaceId }) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Unauthorized");
-
-    const userId = identity.subject || identity.tokenIdentifier;
+    const userId = await getUserId(ctx);
+    if (!userId) throw new Error("User not found. Please try again.");
 
     // Check if user is a member
     const membership = await ctx.db

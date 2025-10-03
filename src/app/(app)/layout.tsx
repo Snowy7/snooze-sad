@@ -129,38 +129,11 @@ function WorkspaceCheckAndRender({ children }: { children: React.ReactNode }) {
   const router = useRouter()
   const workspaces = useQuery(api.workspaces.listMyWorkspaces)
   const dbUser = useQuery(api.users.getCurrentUserQuery)
-  const [isRedirecting, setIsRedirecting] = React.useState(false)
   
   // Get current pathname synchronously
   const currentPath = typeof window !== 'undefined' ? window.location.pathname : ''
   
-  React.useEffect(() => {
-    // Wait for both queries to load
-    if (workspaces === undefined || dbUser === undefined) return
-    
-    console.log("WorkspaceCheck - dbUser:", dbUser, "onboardingCompleted:", dbUser?.onboardingCompleted, "workspaces:", workspaces.length, "currentPath:", currentPath)
-    
-    // Check if user needs onboarding first
-    if (dbUser && !dbUser.onboardingCompleted) {
-      // User needs onboarding, stay on current page
-      console.log("User needs onboarding, NOT redirecting")
-      return
-    }
-    
-    // Only redirect if:
-    // 1. Both queries have loaded
-    // 2. User has completed onboarding (or doesn't need it)
-    // 3. There are no workspaces (empty array)
-    // 4. We're not already on the workspace creation page
-    // 5. We're not already in the process of redirecting
-    if (workspaces.length === 0 && 
-        currentPath !== '/workspaces/new' && 
-        !isRedirecting) {
-      console.log("REDIRECTING to workspace creation")
-      setIsRedirecting(true)
-      router.push("/workspaces/new")
-    }
-  }, [workspaces, dbUser, router, currentPath, isRedirecting])
+  // NO AUTO-REDIRECT - Onboarding will handle workspace creation
   
   // Show loading while checking workspaces (but not if we're already on /workspaces/new)
   if (workspaces === undefined && currentPath !== '/workspaces/new') {

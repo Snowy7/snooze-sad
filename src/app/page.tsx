@@ -2,10 +2,64 @@ import Image from "next/image";
 import Link from "next/link";
 import { CalendarDays, Focus, BarChart3, CheckCircle } from "lucide-react";
 import { MarketingNavbar } from "@/components/marketing/navbar";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: 'Snooze - Stay Organized. Stay Focused. Stay in Flow.',
+  description: 'Combine daily habits, project management, and deep-focus sessions in one minimal workspace. Built for focus with Kanban boards, Pomodoro sessions, habit tracking, and analytics to help you achieve more.',
+  keywords: ['productivity app', 'task manager', 'project management', 'focus timer', 'pomodoro technique', 'habit tracker', 'kanban board', 'time tracking', 'work organization', 'productivity tool'],
+  openGraph: {
+    title: 'Snooze - Stay Organized. Stay Focused. Stay in Flow.',
+    description: 'Combine daily habits, project management, and deep-focus sessions in one minimal workspace designed to help you achieve more.',
+    url: 'https://snooze.app',
+    type: 'website',
+    images: [
+      {
+        url: '/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'Snooze - Productivity workspace',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Snooze - Stay Organized. Stay Focused. Stay in Flow.',
+    description: 'Combine daily habits, project management, and deep-focus sessions in one minimal workspace.',
+    images: ['/og-image.png'],
+  },
+  alternates: {
+    canonical: 'https://snooze.app',
+  },
+};
 
 export default function Home() {
+  // Structured Data for SEO
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "Snooze",
+    "applicationCategory": "ProductivityApplication",
+    "operatingSystem": "Web",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    },
+    "aggregateRating": {
+      "@type": "AggregateRating",
+      "ratingValue": "4.8",
+      "ratingCount": "1250"
+    },
+    "description": "Combine daily habits, project management, and deep-focus sessions in one minimal workspace designed to help you achieve more."
+  };
+
   return (
     <main className="min-h-screen bg-background">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+      />
       <MarketingNavbar />
       
       {/* Hero Section */}

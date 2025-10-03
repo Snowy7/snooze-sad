@@ -1,5 +1,21 @@
 import { MarketingNavbar } from "@/components/marketing/navbar"
 import Link from "next/link"
+import { Metadata } from "next"
+
+export const metadata: Metadata = {
+  title: 'Privacy Policy',
+  description: 'Learn how Snooze collects, uses, and protects your personal information. We take your privacy seriously and implement industry-standard security measures.',
+  keywords: ['privacy policy', 'data protection', 'security', 'GDPR', 'privacy'],
+  openGraph: {
+    title: 'Privacy Policy - Snooze',
+    description: 'Learn how Snooze protects your personal information and privacy.',
+    url: 'https://snooze.app/privacy',
+    type: 'website',
+  },
+  alternates: {
+    canonical: 'https://snooze.app/privacy',
+  },
+};
 
 export default function PrivacyPage() {
   return (

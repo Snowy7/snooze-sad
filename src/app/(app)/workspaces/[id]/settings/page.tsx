@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import React, { useState } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { useQuery, useMutation } from "convex/react"
 import { api } from "@/lib/convex"
@@ -72,12 +72,12 @@ export default function WorkspaceSettingsPage() {
   const [isInviting, setIsInviting] = useState(false)
 
   // Initialize form when workspace loads
-  useState(() => {
+  React.useEffect(() => {
     if (workspace && !isEditing) {
       setName(workspace.name)
       setDescription(workspace.description || "")
     }
-  })
+  }, [workspace, isEditing])
 
   const handleSave = async () => {
     setSaving(true)

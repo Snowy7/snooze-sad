@@ -149,6 +149,7 @@ export const upsertProject = mutation({
     startDate: v.optional(v.string()),
     endDate: v.optional(v.string()),
     ownerId: v.string(),
+    workspaceId: v.optional(v.id("workspaces")),
   },
   handler: async (ctx, args) => {
     if (args.id) {
@@ -158,6 +159,7 @@ export const upsertProject = mutation({
       return id;
     }
     if (!args.name) throw new Error("Name is required for new projects");
+    if (!args.workspaceId) throw new Error("Workspace is required for new projects");
     const { id, ...insertData } = args;
     return await ctx.db.insert("projects", { ...insertData, createdAt: Date.now() } as any);
   }
@@ -277,9 +279,14 @@ export const upsertTask = mutation({
       await ctx.db.patch(id, updates);
       return id;
     }
-    // For new tasks, title and ownerId are required
+    // For new tasks, title is required
     if (!args.title) throw new Error("Title is required for new tasks");
-    if (!args.ownerId) throw new Error("OwnerId is required for new tasks");
+    
+    // Either ownerId (for personal tasks) OR projectId (for project tasks) must be provided
+    if (!args.ownerId && !args.projectId) {
+      throw new Error("Either ownerId or projectId is required for new tasks");
+    }
+    
     return await ctx.db.insert("tasks", { ...args, createdAt: Date.now() } as any);
   }
 });

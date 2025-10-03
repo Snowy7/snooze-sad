@@ -8,8 +8,6 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CheckCircle2, Circle, TrendingUp, Clock, FileText, Plus, Zap, ListChecks, ArrowRight } from "lucide-react";
 import Link from "next/link";
-import { OnboardingModal } from "@/components/onboarding-modal";
-import { SpotlightOnboarding } from "@/components/spotlight-onboarding";
 import { WeeklyProgress } from "@/components/dashboard/weekly-progress";
 import { DashboardSkeleton } from "@/components/dashboard/dashboard-skeleton";
 import { useState, useEffect } from "react";
@@ -19,8 +17,6 @@ export default function DashboardPage() {
   const ownerId = useOwnerId()
   const data = useQuery(api.functions.listDashboard, { ownerId, today })
   const projects = useQuery(api.functions.listProjects, { ownerId }) || []
-  const [showOnboarding, setShowOnboarding] = useState(false)
-  
   const tasks = (data?.tasksToday ?? []).slice(0, 5)
   const overdue = (data?.overdue ?? []).slice(0, 3)
   const notes = (data?.notes ?? []).slice(0, 3)
@@ -30,12 +26,6 @@ export default function DashboardPage() {
   const total = tasks.length || 1
 
   // Check if user has completed onboarding
-  useEffect(() => {
-    const onboardingCompleted = localStorage.getItem("onboarding_completed")
-    if (!onboardingCompleted) {
-      setShowOnboarding(true)
-    }
-  }, [])
 
   // Show skeleton while loading
   if (data === undefined || projects === undefined) {
@@ -44,7 +34,6 @@ export default function DashboardPage() {
 
   return (
     <>
-      <SpotlightOnboarding />
       <div className="space-y-6 p-6 max-w-7xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
         <div className="flex items-center justify-between mb-2">
           <div>

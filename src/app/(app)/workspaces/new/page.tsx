@@ -47,7 +47,7 @@ export default function NewWorkspacePage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-2xl p-8">
+      <Card className="w-full max-w-2xl p-8" data-onboarding="workspace-form">
         <div className="space-y-6">
           {/* Header */}
           <div className="space-y-2">
