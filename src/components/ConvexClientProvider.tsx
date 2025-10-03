@@ -26,14 +26,41 @@ function useAuthFromAuthKit() {
   const stableAccessToken = useRef<string | null>(null);
   if (accessToken && !tokenError) {
     stableAccessToken.current = accessToken;
+    
+    // Decode JWT to inspect (for debugging only - don't verify signature here)
+    try {
+      const parts = accessToken.split('.');
+      if (parts.length === 3) {
+        const payload = JSON.parse(atob(parts[1]));
+        console.log('[Convex Auth] Access token obtained', {
+          iss: payload.iss,
+          sub: payload.sub,
+          aud: payload.aud,
+          exp: new Date(payload.exp * 1000).toISOString(),
+        });
+      }
+    } catch (e) {
+      console.log('[Convex Auth] Access token obtained (could not decode)');
+    }
   }
 
   const fetchAccessToken = useCallback(async () => {
     if (stableAccessToken.current && !tokenError) {
+      console.log('[Convex Auth] Returning stable access token');
       return stableAccessToken.current;
     }
+    console.log('[Convex Auth] No access token available', { tokenError });
     return null;
   }, [tokenError]);
+
+  // Log auth state changes
+  console.log('[Convex Auth] State:', { 
+    hasUser: !!user, 
+    hasToken: !!accessToken, 
+    isLoading: loading,
+    isAuthenticated: authenticated,
+    tokenError: tokenError?.message 
+  });
 
   return {
     isLoading: loading,

@@ -235,3 +235,33 @@ export const syncCurrentUser = mutation({
     return await ctx.db.get(userId);
   },
 });
+
+// Update user accent color - uses email as argument since auth identity is unreliable
+export const updateAccentColorByEmail = mutation({
+  args: { 
+    email: v.string(),
+    accentColor: v.string() 
+  },
+  handler: async (ctx, { email, accentColor }) => {
+    console.log("updateAccentColorByEmail - email:", email, "color:", accentColor);
+    
+    // Find user by email (most reliable method)
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_email", (q) => q.eq("email", email))
+      .unique();
+
+    if (!user) {
+      console.error("User not found by email:", email);
+      throw new Error("User not found");
+    }
+
+    console.log("Updating user accent color to:", accentColor);
+    await ctx.db.patch(user._id, {
+      accentColor,
+      updatedAt: Date.now(),
+    });
+
+    return { success: true };
+  },
+});

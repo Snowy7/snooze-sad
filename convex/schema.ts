@@ -12,6 +12,7 @@ export default defineSchema({
     externalId: v.optional(v.string()),
     emailVerified: v.optional(v.boolean()),
     onboardingCompleted: v.optional(v.boolean()),
+    accentColor: v.optional(v.string()), // User's preferred accent color
     role: v.optional(v.string()),
     createdAt: v.optional(v.number()),
     updatedAt: v.optional(v.number()),

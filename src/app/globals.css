@@ -172,3 +172,147 @@
     @apply mb-2 inline-block;
   }
 }
+
+/* Accent color system - Dynamic primary colors based on user preference */
+[data-accent="slate"] { 
+  --accent-50: 248 250 252; --accent-100: 241 245 249; --accent-500: 100 116 139; --accent-600: 71 85 105; --accent-700: 51 65 85;
+  --primary: oklch(0.556 0.015 254.604);
+  --primary-foreground: oklch(0.985 0 0);
+  --ring: oklch(0.556 0.015 254.604);
+}
+[data-accent="gray"] { 
+  --accent-50: 249 250 251; --accent-100: 243 244 246; --accent-500: 107 114 128; --accent-600: 75 85 99; --accent-700: 55 65 81;
+  --primary: oklch(0.556 0.012 264.542);
+  --primary-foreground: oklch(0.985 0 0);
+  --ring: oklch(0.556 0.012 264.542);
+}
+[data-accent="zinc"] { 
+  --accent-50: 250 250 250; --accent-100: 244 244 245; --accent-500: 113 113 122; --accent-600: 82 82 91; --accent-700: 63 63 70;
+  --primary: oklch(0.556 0.016 264.531);
+  --primary-foreground: oklch(0.985 0 0);
+  --ring: oklch(0.556 0.016 264.531);
+}
+[data-accent="neutral"] { 
+  --accent-50: 250 250 250; --accent-100: 245 245 245; --accent-500: 115 115 115; --accent-600: 82 82 82; --accent-700: 64 64 64;
+  --primary: oklch(0.556 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --ring: oklch(0.556 0 0);
+}
+[data-accent="stone"] { 
+  --accent-50: 250 250 249; --accent-100: 245 245 244; --accent-500: 120 113 108; --accent-600: 87 83 78; --accent-700: 68 64 60;
+  --primary: oklch(0.556 0.01 56.366);
+  --primary-foreground: oklch(0.985 0 0);
+  --ring: oklch(0.556 0.01 56.366);
+}
+[data-accent="red"] { 
+  --accent-50: 254 242 242; --accent-100: 254 226 226; --accent-500: 239 68 68; --accent-600: 220 38 38; --accent-700: 185 28 28;
+  --primary: oklch(0.637 0.237 25.331);
+  --primary-foreground: oklch(0.985 0 0);
+  --ring: oklch(0.637 0.237 25.331);
+}
+[data-accent="orange"] { 
+  --accent-50: 255 247 237; --accent-100: 255 237 213; --accent-500: 249 115 22; --accent-600: 234 88 12; --accent-700: 194 65 12;
+  --primary: oklch(0.696 0.199 41.696);
+  --primary-foreground: oklch(0.985 0 0);
+  --ring: oklch(0.696 0.199 41.696);
+}
+[data-accent="amber"] { 
+  --accent-50: 255 251 235; --accent-100: 254 243 199; --accent-500: 245 158 11; --accent-600: 217 119 6; --accent-700: 180 83 9;
+  --primary: oklch(0.748 0.153 70.559);
+  --primary-foreground: oklch(0.145 0 0);
+  --ring: oklch(0.748 0.153 70.559);
+}
+[data-accent="yellow"] { 
+  --accent-50: 254 252 232; --accent-100: 254 249 195; --accent-500: 234 179 8; --accent-600: 202 138 4; --accent-700: 161 98 7;
+  --primary: oklch(0.831 0.165 96.474);
+  --primary-foreground: oklch(0.145 0 0);
+  --ring: oklch(0.831 0.165 96.474);
+}
+[data-accent="lime"] { 
+  --accent-50: 247 254 231; --accent-100: 236 252 203; --accent-500: 132 204 22; --accent-600: 101 163 13; --accent-700: 77 124 15;
+  --primary: oklch(0.746 0.194 130.34);
+  --primary-foreground: oklch(0.145 0 0);
+  --ring: oklch(0.746 0.194 130.34);
+}
+[data-accent="green"] { 
+  --accent-50: 240 253 244; --accent-100: 220 252 231; --accent-500: 34 197 94; --accent-600: 22 163 74; --accent-700: 21 128 61;
+  --primary: oklch(0.705 0.172 149.579);
+  --primary-foreground: oklch(0.985 0 0);
+  --ring: oklch(0.705 0.172 149.579);
+}
+[data-accent="emerald"] { 
+  --accent-50: 236 253 245; --accent-100: 209 250 229; --accent-500: 16 185 129; --accent-600: 5 150 105; --accent-700: 4 120 87;
+  --primary: oklch(0.672 0.148 165.621);
+  --primary-foreground: oklch(0.985 0 0);
+  --ring: oklch(0.672 0.148 165.621);
+}
+[data-accent="teal"] { 
+  --accent-50: 240 253 250; --accent-100: 204 251 241; --accent-500: 20 184 166; --accent-600: 13 148 136; --accent-700: 15 118 110;
+  --primary: oklch(0.677 0.112 180.774);
+  --primary-foreground: oklch(0.985 0 0);
+  --ring: oklch(0.677 0.112 180.774);
+}
+[data-accent="cyan"] { 
+  --accent-50: 236 254 255; --accent-100: 207 250 254; --accent-500: 6 182 212; --accent-600: 8 145 178; --accent-700: 14 116 144;
+  --primary: oklch(0.683 0.117 197.137);
+  --primary-foreground: oklch(0.985 0 0);
+  --ring: oklch(0.683 0.117 197.137);
+}
+[data-accent="sky"] { 
+  --accent-50: 240 249 255; --accent-100: 224 242 254; --accent-500: 14 165 233; --accent-600: 2 132 199; --accent-700: 3 105 161;
+  --primary: oklch(0.699 0.129 232.661);
+  --primary-foreground: oklch(0.985 0 0);
+  --ring: oklch(0.699 0.129 232.661);
+}
+[data-accent="blue"] { 
+  --accent-50: 239 246 255; --accent-100: 219 234 254; --accent-500: 59 130 246; --accent-600: 37 99 235; --accent-700: 29 78 216;
+  --primary: oklch(0.608 0.204 255.058);
+  --primary-foreground: oklch(0.985 0 0);
+  --ring: oklch(0.608 0.204 255.058);
+}
+[data-accent="indigo"] { 
+  --accent-50: 238 242 255; --accent-100: 224 231 255; --accent-500: 99 102 241; --accent-600: 79 70 229; --accent-700: 67 56 202;
+  --primary: oklch(0.564 0.233 276.751);
+  --primary-foreground: oklch(0.985 0 0);
+  --ring: oklch(0.564 0.233 276.751);
+}
+[data-accent="violet"] { 
+  --accent-50: 245 243 255; --accent-100: 237 233 254; --accent-500: 139 92 246; --accent-600: 124 58 237; --accent-700: 109 40 217;
+  --primary: oklch(0.606 0.262 293.665);
+  --primary-foreground: oklch(0.985 0 0);
+  --ring: oklch(0.606 0.262 293.665);
+}
+[data-accent="purple"] { 
+  --accent-50: 250 245 255; --accent-100: 243 232 255; --accent-500: 168 85 247; --accent-600: 147 51 234; --accent-700: 126 34 206;
+  --primary: oklch(0.641 0.254 302.321);
+  --primary-foreground: oklch(0.985 0 0);
+  --ring: oklch(0.641 0.254 302.321);
+}
+[data-accent="fuchsia"] { 
+  --accent-50: 253 244 255; --accent-100: 250 232 255; --accent-500: 217 70 239; --accent-600: 192 38 211; --accent-700: 162 28 175;
+  --primary: oklch(0.648 0.247 320.815);
+  --primary-foreground: oklch(0.985 0 0);
+  --ring: oklch(0.648 0.247 320.815);
+}
+[data-accent="pink"] { 
+  --accent-50: 253 242 248; --accent-100: 252 231 243; --accent-500: 236 72 153; --accent-600: 219 39 119; --accent-700: 190 24 93;
+  --primary: oklch(0.656 0.214 349.761);
+  --primary-foreground: oklch(0.985 0 0);
+  --ring: oklch(0.656 0.214 349.761);
+}
+[data-accent="rose"] { 
+  --accent-50: 255 241 242; --accent-100: 255 228 230; --accent-500: 244 63 94; --accent-600: 225 29 72; --accent-700: 190 18 60;
+  --primary: oklch(0.645 0.226 12.422);
+  --primary-foreground: oklch(0.985 0 0);
+  --ring: oklch(0.645 0.226 12.422);
+}
+
+/* Utility classes for accent colors */
+.accent-bg { background-color: rgb(var(--accent-500)); }
+.accent-bg-light { background-color: rgb(var(--accent-50)); }
+.accent-bg-lighter { background-color: rgb(var(--accent-100)); }
+.accent-text { color: rgb(var(--accent-600)); }
+.accent-text-dark { color: rgb(var(--accent-700)); }
+.accent-border { border-color: rgb(var(--accent-500)); }
+.hover\:accent-bg:hover { background-color: rgb(var(--accent-600)); }
+.hover\:accent-bg-light:hover { background-color: rgb(var(--accent-100)); }

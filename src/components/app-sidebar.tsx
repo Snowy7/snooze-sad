@@ -166,18 +166,18 @@ export function AppSidebar() {
                   </>
                 )}
 
-                {/* New Project Button at bottom of projects list */}
-                <div className="flex-1 items-center gap-2 content-end">
+                 {/* New Project Button at bottom of projects list */}
+                 <div className="flex-1 items-center gap-2 content-end">
 
-                <SidebarMenuItem className="">
-                  <SidebarMenuButton asChild className="text-blue-500 hover:text-blue-600 hover:bg-blue-500/10">
-                    <Link href="/projects/new">
-                      <Plus className="h-4 w-4" />
-                      <span>New Project</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                  </div>
+                 <SidebarMenuItem className="">
+                   <SidebarMenuButton asChild className="accent-text hover:accent-text-dark hover:accent-bg-light">
+                     <Link href="/projects/new">
+                       <Plus className="h-4 w-4" />
+                       <span>New Project</span>
+                     </Link>
+                   </SidebarMenuButton>
+                 </SidebarMenuItem>
+                   </div>
               </SidebarMenu>
             )}
           </SidebarGroupContent>

@@ -50,7 +50,7 @@ export function WorkspaceSwitcher() {
             className="w-full justify-start h-auto py-2 px-2 hover:bg-accent/50 transition-colors"
           >
             <div className="flex items-center gap-2 overflow-hidden flex-1">
-              <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center flex-shrink-0">
+              <div className="h-8 w-8 rounded-lg accent-bg flex items-center justify-center flex-shrink-0">
                 <Building2 className="h-4 w-4 text-white" />
               </div>
               <div className="flex flex-col items-start overflow-hidden flex-1">

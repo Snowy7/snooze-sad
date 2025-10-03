@@ -12,14 +12,22 @@ import { signOut } from "@/lib/workos/auth"
 import { LogOut, User, Bell, Palette, Shield, Upload, Check, Sun, Moon, Monitor } from "lucide-react"
 import { toast } from "sonner"
 import { useTheme } from "next-themes"
+import { AccentColorPicker } from "@/components/accent-color-picker"
+import { useAccent } from "@/contexts/accent-context"
+import { useMutation, useQuery } from "convex/react"
+import { api } from "@/lib/convex"
 
 export default function SettingsPage() {
   const { user } = useAuth()
   const { theme, setTheme } = useTheme()
+  const { accentColor } = useAccent()
+  const updateAccentColorByEmail = useMutation(api.users.updateAccentColorByEmail)
+  const dbUser = useQuery(api.users.getCurrentUserQuery)
   
   const [firstName, setFirstName] = useState(user?.firstName || "")
   const [lastName, setLastName] = useState(user?.lastName || "")
   const [profilePicture, setProfilePicture] = useState(user?.profilePictureUrl || "")
+  const [selectedAccent, setSelectedAccent] = useState(accentColor)
   const [isUploading, setIsUploading] = useState(false)
   const [hasChanges, setHasChanges] = useState(false)
 
@@ -219,7 +227,7 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-6">
           <div>
             <Label>Theme</Label>
             <p className="text-xs text-muted-foreground mb-3">
@@ -254,6 +262,43 @@ export default function SettingsPage() {
                 System
               </Button>
             </div>
+          </div>
+          
+          <Separator />
+          
+          <div>
+            <Label>Accent Color</Label>
+            <p className="text-xs text-muted-foreground mb-3">
+              Choose your favorite color to personalize the app
+            </p>
+            <AccentColorPicker 
+              value={selectedAccent} 
+              onChange={async (color) => {
+                setSelectedAccent(color)
+                
+                // Save to localStorage immediately for persistence
+                localStorage.setItem('accentColor', color)
+                
+                // Update DOM for instant feedback
+                document.documentElement.setAttribute("data-accent", color)
+                
+                // Show immediate feedback
+                toast.success("Accent color changed!")
+                
+                // Save to database using email (works even if Convex auth identity is delayed)
+                if (user?.email) {
+                  try {
+                    await updateAccentColorByEmail({ 
+                      email: user.email,
+                      accentColor: color 
+                    })
+                    console.log("Accent color saved to database")
+                  } catch (error: any) {
+                    console.log("Could not save to database:", error.message)
+                  }
+                }
+              }}
+            />
           </div>
         </div>
       </Card>

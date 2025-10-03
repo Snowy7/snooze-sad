@@ -2,8 +2,13 @@
 
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { ArrowRight, ArrowLeft, X, CheckCircle, Hand, Sparkles } from "lucide-react"
+import { ArrowRight, ArrowLeft, X, CheckCircle, Hand, Sparkles, Palette } from "lucide-react"
 import { useRouter } from "next/navigation"
+import { AccentColorPicker } from "@/components/accent-color-picker"
+import { useMutation } from "convex/react"
+import { api } from "@/lib/convex"
+import { useAuth } from "@workos-inc/authkit-nextjs/components"
+import { CommandShortcut } from "@/components/ui/command" 
 
 interface OnboardingStep {
   id: string
@@ -13,6 +18,7 @@ interface OnboardingStep {
   position: "top" | "bottom" | "left" | "right"
   shortcut?: string
   action?: () => void
+  customContent?: React.ReactNode
 }
 
 const steps: OnboardingStep[] = [
@@ -24,12 +30,19 @@ const steps: OnboardingStep[] = [
     position: "bottom"
   },
   {
+    id: "accent-color",
+    title: "Choose Your Style",
+    description: "Pick your favorite accent color to personalize your workspace. You can always change it later in Settings!",
+    targetSelector: "body",
+    position: "bottom"
+  },
+  {
     id: "sidebar",
     title: "Navigation Sidebar",
     description: "Access all your tools from here: Dashboard, Daily Tasks, Projects, Habits, Notes, Focus Mode, and more. Use keyboard shortcuts for quick navigation!",
     targetSelector: "[data-onboarding='sidebar']",
     position: "right",
-    shortcut: "⇧⌘D Dashboard • ⇧⌘T Tasks • ⇧⌘P Projects"
+    shortcut: "sidebar"
   },
   {
     id: "command-menu",
@@ -37,7 +50,7 @@ const steps: OnboardingStep[] = [
     description: "The fastest way to navigate! Type to search and access any feature instantly. All shortcuts are listed here.",
     targetSelector: "[data-onboarding='search']",
     position: "bottom",
-    shortcut: "⌘K or Ctrl+K"
+    shortcut: "command"
   },
   {
     id: "quick-actions",
@@ -45,7 +58,7 @@ const steps: OnboardingStep[] = [
     description: "Jump into your day with these quick action buttons. Start a focus session or manage your daily tasks with one click.",
     targetSelector: "[data-onboarding='quick-actions']",
     position: "bottom",
-    shortcut: "⌘F Focus Mode • ⌘N New Note • ⇧⌘X New Project"
+    shortcut: "actions"
   },
   {
     id: "stats",
@@ -53,7 +66,7 @@ const steps: OnboardingStep[] = [
     description: "Track your daily completion rate, overdue tasks, and active projects. Stay on top of your productivity goals!",
     targetSelector: "[data-onboarding='stats']",
     position: "bottom",
-    shortcut: "⇧⌘A Analytics • ⇧⌘H Habits • ⇧⌘C Calendar"
+    shortcut: "navigation"
   },
   {
     id: "create-workspace",
@@ -66,9 +79,14 @@ const steps: OnboardingStep[] = [
 
 export function SpotlightOnboarding() {
   const router = useRouter()
+  const { user } = useAuth()
+  const updateAccentColorByEmail = useMutation(api.users.updateAccentColorByEmail)
   const [isActive, setIsActive] = useState(false)
   const [currentStep, setCurrentStep] = useState(0)
   const [targetRect, setTargetRect] = useState<DOMRect | null>(null)
+  const [selectedAccent, setSelectedAccent] = useState<string>(
+    typeof window !== 'undefined' ? localStorage.getItem('accentColor') || 'slate' : 'slate'
+  )
 
   useEffect(() => {
     const hasSeenOnboarding = localStorage.getItem("spotlight_onboarding_completed")
@@ -118,6 +136,28 @@ export function SpotlightOnboarding() {
     }
   }, [isActive, currentStep])
 
+  const handleAccentColorChange = async (color: string) => {
+    setSelectedAccent(color)
+    
+    // Save to localStorage immediately
+    localStorage.setItem('accentColor', color)
+    
+    // Update DOM for instant feedback
+    document.documentElement.setAttribute("data-accent", color)
+    
+    // Save to database in the background
+    if (user?.email) {
+      try {
+        await updateAccentColorByEmail({ 
+          email: user.email,
+          accentColor: color 
+        })
+      } catch (error) {
+        console.log("Could not save accent color:", error)
+      }
+    }
+  }
+
   const handleNext = () => {
     if (currentStep < steps.length - 1) {
       const nextStep = currentStep + 1
@@ -139,7 +179,18 @@ export function SpotlightOnboarding() {
 
   const handlePrevious = () => {
     if (currentStep > 0) {
-      setCurrentStep(currentStep - 1)
+      const prevStep = currentStep - 1
+      
+      // If going back from "Create Workspace" step (last step), navigate to dashboard first
+      if (currentStep === steps.length - 1) {
+        router.push("/dashboard")
+        // Wait for navigation before updating step
+        setTimeout(() => {
+          setCurrentStep(prevStep)
+        }, 300)
+      } else {
+        setCurrentStep(prevStep)
+      }
     }
   }
 
@@ -160,16 +211,17 @@ export function SpotlightOnboarding() {
   const step = steps[currentStep]
   const isFirstStep = currentStep === 0
   const isLastStep = currentStep === steps.length - 1
+  const isAccentColorStep = step.id === "accent-color"
 
   // Calculate tooltip position
   const getTooltipStyle = () => {
-    // For first step or when target not found, center the tooltip
-    if (!targetRect || isFirstStep) {
+    // For first step, accent color step, or when target not found, center the tooltip
+    if (!targetRect || isFirstStep || isAccentColorStep) {
       return {
         top: "50%",
         left: "50%",
         transform: "translate(-50%, -50%)",
-        maxWidth: "500px",
+        maxWidth: isAccentColorStep ? "700px" : "600px",
         padding: "0 20px"
       }
     }
@@ -246,7 +298,7 @@ export function SpotlightOnboarding() {
   return (
     <div className="fixed inset-0 z-[9999]">
       {/* Dark overlay with cutout using SVG mask */}
-      {targetRect && !isFirstStep ? (
+      {targetRect && !isFirstStep && !isAccentColorStep ? (
         <>
           {/* Blurred dark overlay with SVG cutout */}
           <div className="absolute inset-0 pointer-events-auto" onClick={handleSkip}>
@@ -301,30 +353,27 @@ export function SpotlightOnboarding() {
       )}
       
       {/* Blue highlight ring around the spotlight */}
-      {targetRect && !isFirstStep && (
+      {targetRect && !isFirstStep && !isAccentColorStep && (
         <>
-          <style>{`
-            @keyframes ring-pulse {
-              0%, 100% {
-                box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7),
-                            0 0 20px rgba(59, 130, 246, 0.5);
-              }
-              50% {
-                box-shadow: 0 0 0 8px rgba(59, 130, 246, 0),
-                            0 0 40px rgba(59, 130, 246, 0.8);
-              }
-            }
-            .ring-pulse {
-              animation: ring-pulse 2s ease-in-out infinite;
-            }
-          `}</style>
           <div
-            className="absolute rounded-xl ring-4 ring-blue-500 ring-pulse transition-all duration-300 pointer-events-none"
+            className="absolute rounded-xl transition-all duration-300 pointer-events-none"
             style={{
               top: `${targetRect.top - 8}px`,
               left: `${targetRect.left - 8}px`,
               width: `${targetRect.width + 16}px`,
               height: `${targetRect.height + 16}px`,
+              border: '4px solid rgb(var(--accent-500))',
+              boxShadow: `
+                0 0 0 0 rgba(var(--accent-500), 1),
+                0 0 10px rgba(var(--accent-500), 0.8),
+                0 0 20px rgba(var(--accent-500), 0.7),
+                0 0 30px rgba(var(--accent-500), 0.6),
+                0 0 40px rgba(var(--accent-500), 0.5),
+                0 0 60px rgba(var(--accent-500), 0.4),
+                0 0 80px rgba(var(--accent-500), 0.3),
+                inset 0 0 30px rgba(var(--accent-500), 0.3)
+              `,
+              animation: 'ring-pulse 2s ease-in-out infinite'
             }}
           />
           {/* Transparent overlay on the highlighted area to allow clicks */}
@@ -364,8 +413,40 @@ export function SpotlightOnboarding() {
           }
           
           @keyframes pulse-glow {
-            0%, 100% { box-shadow: 0 0 20px rgba(59, 130, 246, 0.3); }
-            50% { box-shadow: 0 0 40px rgba(59, 130, 246, 0.6); }
+            0%, 100% { 
+              filter: brightness(1);
+              transform: scale(1);
+            }
+            50% { 
+              filter: brightness(1.2);
+              transform: scale(1.05);
+            }
+          }
+          
+          @keyframes ring-pulse {
+            0%, 100% {
+              box-shadow: 
+                0 0 0 0 rgba(var(--accent-500), 1),
+                0 0 10px rgba(var(--accent-500), 0.8),
+                0 0 20px rgba(var(--accent-500), 0.7),
+                0 0 30px rgba(var(--accent-500), 0.6),
+                0 0 40px rgba(var(--accent-500), 0.5),
+                0 0 60px rgba(var(--accent-500), 0.4),
+                0 0 80px rgba(var(--accent-500), 0.3),
+                inset 0 0 30px rgba(var(--accent-500), 0.3);
+            }
+            50% {
+              box-shadow: 
+                0 0 0 8px rgba(var(--accent-500), 0),
+                0 0 15px rgba(var(--accent-500), 0.9),
+                0 0 30px rgba(var(--accent-500), 0.8),
+                0 0 45px rgba(var(--accent-500), 0.7),
+                0 0 60px rgba(var(--accent-500), 0.6),
+                0 0 80px rgba(var(--accent-500), 0.5),
+                0 0 100px rgba(var(--accent-500), 0.4),
+                0 0 120px rgba(var(--accent-500), 0.3),
+                inset 0 0 40px rgba(var(--accent-500), 0.4);
+            }
           }
           
           @keyframes bounce-in {
@@ -395,7 +476,9 @@ export function SpotlightOnboarding() {
           }
         `}</style>
         
-        <div className="bg-card border border-border rounded-lg shadow-2xl p-6 space-y-4 w-full max-w-md bounce-in">
+        <div className={`bg-card border border-border rounded-lg shadow-2xl p-6 space-y-4 w-full bounce-in ${
+          isAccentColorStep ? "max-w-2xl" : "max-w-md"
+        }`}>
           <div className="flex items-start justify-between">
             <div className="flex-1">
               <div className="space-y-2">
@@ -404,6 +487,11 @@ export function SpotlightOnboarding() {
                     <>
                       {step.title}
                       <Hand className="wave-emoji h-6 w-6 text-primary" />
+                    </>
+                  ) : isAccentColorStep ? (
+                    <>
+                      {step.title}
+                      <Palette className="float-emoji h-6 w-6 text-primary" />
                     </>
                   ) : isLastStep ? (
                     <>
@@ -415,10 +503,62 @@ export function SpotlightOnboarding() {
                   )}
                 </h3>
                 {step.shortcut && (
-                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-blue-500/10 border border-blue-500/20">
-                    <kbd className="text-xs font-mono text-blue-600 dark:text-blue-400">
-                      {step.shortcut}
-                    </kbd>
+                  <div className="flex flex-wrap items-center gap-2 mt-2">
+                    {step.shortcut === "sidebar" && (
+                      <>
+                        <div className="inline-flex items-center gap-2">
+                          <CommandShortcut>⇧⌘D</CommandShortcut>
+                          <span className="text-xs text-muted-foreground">Dashboard</span>
+                        </div>
+                        <div className="inline-flex items-center gap-2">
+                          <CommandShortcut>⇧⌘T</CommandShortcut>
+                          <span className="text-xs text-muted-foreground">Tasks</span>
+                        </div>
+                        <div className="inline-flex items-center gap-2">
+                          <CommandShortcut>⇧⌘P</CommandShortcut>
+                          <span className="text-xs text-muted-foreground">Projects</span>
+                        </div>
+                      </>
+                    )}
+                    {step.shortcut === "command" && (
+                      <div className="inline-flex items-center gap-2">
+                        <CommandShortcut>⌘K</CommandShortcut>
+                        <span className="text-xs text-muted-foreground">or</span>
+                        <CommandShortcut>Ctrl+K</CommandShortcut>
+                      </div>
+                    )}
+                    {step.shortcut === "actions" && (
+                      <>
+                        <div className="inline-flex items-center gap-2">
+                          <CommandShortcut>⌘F</CommandShortcut>
+                          <span className="text-xs text-muted-foreground">Focus</span>
+                        </div>
+                        <div className="inline-flex items-center gap-2">
+                          <CommandShortcut>⌘N</CommandShortcut>
+                          <span className="text-xs text-muted-foreground">Note</span>
+                        </div>
+                        <div className="inline-flex items-center gap-2">
+                          <CommandShortcut>⇧⌘X</CommandShortcut>
+                          <span className="text-xs text-muted-foreground">Project</span>
+                        </div>
+                      </>
+                    )}
+                    {step.shortcut === "navigation" && (
+                      <>
+                        <div className="inline-flex items-center gap-2">
+                          <CommandShortcut>⇧⌘A</CommandShortcut>
+                          <span className="text-xs text-muted-foreground">Analytics</span>
+                        </div>
+                        <div className="inline-flex items-center gap-2">
+                          <CommandShortcut>⇧⌘H</CommandShortcut>
+                          <span className="text-xs text-muted-foreground">Habits</span>
+                        </div>
+                        <div className="inline-flex items-center gap-2">
+                          <CommandShortcut>⇧⌘C</CommandShortcut>
+                          <span className="text-xs text-muted-foreground">Calendar</span>
+                        </div>
+                      </>
+                    )}
                   </div>
                 )}
               </div>
@@ -434,6 +574,16 @@ export function SpotlightOnboarding() {
             </Button>
           </div>
 
+          {/* Accent Color Picker for accent-color step */}
+          {isAccentColorStep && (
+            <div className="pt-2">
+              <AccentColorPicker 
+                value={selectedAccent}
+                onChange={handleAccentColorChange}
+              />
+            </div>
+          )}
+
           <div className="flex items-center justify-between pt-2">
             <div className="flex gap-1">
               {steps.map((_, index) => (
@@ -441,13 +591,32 @@ export function SpotlightOnboarding() {
                   key={index}
                   className={`h-1.5 rounded-full transition-all duration-500 ${
                     index === currentStep
-                      ? "w-6 bg-blue-500 pulse-ring"
+                      ? "w-6 accent-bg"
                       : index < currentStep
-                      ? "w-1.5 bg-green-500 scale-110"
+                      ? "w-1.5 accent-bg opacity-60 scale-110"
                       : "w-1.5 bg-muted"
                   }`}
                   style={{
-                    animationDelay: `${index * 0.1}s`
+                    animationDelay: `${index * 0.1}s`,
+                    ...(index === currentStep && {
+                      boxShadow: `
+                        0 0 5px rgba(var(--accent-500), 0.9),
+                        0 0 10px rgba(var(--accent-500), 0.8),
+                        0 0 15px rgba(var(--accent-500), 0.7),
+                        0 0 20px rgba(var(--accent-500), 0.6),
+                        0 0 25px rgba(var(--accent-500), 0.5),
+                        0 0 30px rgba(var(--accent-500), 0.4),
+                        0 0 40px rgba(var(--accent-500), 0.3)
+                      `,
+                      animation: 'pulse-glow 2s ease-in-out infinite'
+                    }),
+                    ...(index < currentStep && {
+                      boxShadow: `
+                        0 0 5px rgba(var(--accent-500), 0.6),
+                        0 0 10px rgba(var(--accent-500), 0.5),
+                        0 0 15px rgba(var(--accent-500), 0.4)
+                      `
+                    })
                   }}
                 />
               ))}
@@ -468,7 +637,7 @@ export function SpotlightOnboarding() {
               <Button 
                 size="sm" 
                 onClick={handleNext} 
-                className="gap-1 hover:scale-105 transition-transform bg-blue-500 hover:bg-blue-600"
+                className="gap-1 hover:scale-105 transition-transform accent-bg text-white hover:opacity-90"
               >
                 {isLastStep ? (
                   <>
