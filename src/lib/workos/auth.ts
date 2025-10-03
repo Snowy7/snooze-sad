@@ -40,7 +40,7 @@ export async function signInWithPassword(prevState: any, formData: FormData): Pr
         user: authResponse.user,
         impersonator: authResponse.impersonator,
       },
-      process.env.WORKOS_REDIRECT_URI || "http://localhost:3000/callback"
+      process.env.WORKOS_REDIRECT_URI || "http://snooze.snowydev.xyz/callback"
     );
 
     await refreshSession();
@@ -93,7 +93,7 @@ export async function signUpWithPassword(prevState: any, formData: FormData): Pr
         user: authResponse.user,
         impersonator: authResponse.impersonator,
       },
-      process.env.WORKOS_REDIRECT_URI || "http://localhost:3000/callback"
+      process.env.WORKOS_REDIRECT_URI || "http://snooze.snowydev.xyz/callback"
     );
 
     return {
@@ -130,7 +130,7 @@ export async function startGoogleOAuth() {
   const url = workos.userManagement.getAuthorizationUrl({
     clientId: process.env.WORKOS_CLIENT_ID || "",
     provider: "GoogleOAuth",
-    redirectUri: process.env.WORKOS_REDIRECT_URI || "http://localhost:3000/callback",
+    redirectUri: process.env.WORKOS_REDIRECT_URI || "http://snooze.snowydev.xyz/callback",
   });
   redirect(url);
 }
@@ -139,7 +139,7 @@ export async function startGitHubOAuth() {
   const url = workos.userManagement.getAuthorizationUrl({
     clientId: process.env.WORKOS_CLIENT_ID || "",
     provider: "GitHubOAuth",
-    redirectUri: process.env.WORKOS_REDIRECT_URI || "http://localhost:3000/callback",
+    redirectUri: process.env.WORKOS_REDIRECT_URI || "http://snooze.snowydev.xyz/callback",
   });
   redirect(url);
 }
