@@ -38,10 +38,10 @@ export const metadata: Metadata = {
     description: 'Combine daily habits, project management, and deep-focus sessions in one minimal workspace designed to help you achieve more.',
     images: [
       {
-        url: '/og-image.png',
-        width: 1200,
-        height: 630,
-        alt: 'Snooze - Productivity workspace',
+        url: '/images/app.png',
+        width: 1920,
+        height: 1080,
+        alt: 'Snooze - Modern productivity workspace with dashboard, tasks, and projects',
       },
     ],
   },
@@ -49,8 +49,9 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Snooze - Stay Organized. Stay Focused. Stay in Flow.',
     description: 'Combine daily habits, project management, and deep-focus sessions in one minimal workspace.',
-    images: ['/og-image.png'],
+    images: ['/images/app.png'],
     creator: '@snoozeapp',
+    site: '@snoozeapp',
   },
   robots: {
     index: true,

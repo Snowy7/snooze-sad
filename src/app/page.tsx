@@ -12,13 +12,14 @@ export const metadata: Metadata = {
     title: 'Snooze - Stay Organized. Stay Focused. Stay in Flow.',
     description: 'Combine daily habits, project management, and deep-focus sessions in one minimal workspace designed to help you achieve more.',
     url: 'https://snooze.app',
+    siteName: 'Snooze',
     type: 'website',
     images: [
       {
-        url: '/og-image.png',
-        width: 1200,
-        height: 630,
-        alt: 'Snooze - Productivity workspace',
+        url: '/images/app.png',
+        width: 1920,
+        height: 1080,
+        alt: 'Snooze - Modern productivity workspace with dashboard, tasks, and projects',
       },
     ],
   },
@@ -26,7 +27,8 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Snooze - Stay Organized. Stay Focused. Stay in Flow.',
     description: 'Combine daily habits, project management, and deep-focus sessions in one minimal workspace.',
-    images: ['/og-image.png'],
+    images: ['/images/app.png'],
+    creator: '@snoozeapp',
   },
   alternates: {
     canonical: 'https://snooze.app',
@@ -80,10 +82,15 @@ export default function Home() {
               Learn More
             </a>
           </div>
-          <div className="mt-16 relative rounded-xl border bg-background/50 backdrop-blur-sm shadow-2xl overflow-hidden">
-            <div className="aspect-video w-full bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center text-muted-foreground">
-              Product Preview
-            </div>
+          <div className="mt-16 relative rounded-xl border bg-background/50 backdrop-blur-sm shadow-2xl overflow-hidden aspect-video">
+            <Image
+              src="/images/app.png"
+              alt="Snooze dashboard showing daily tasks, projects, and productivity analytics"
+              width={1920}
+              height={1080}
+              className="w-full h-full object-cover"
+              priority
+            />
           </div>
         </div>
       </section>
@@ -117,10 +124,14 @@ export default function Home() {
                 <li className="flex items-start gap-2">✓ Accessible, mobile-friendly design</li>
               </ul>
             </div>
-            <div className="rounded-xl border bg-background/50 backdrop-blur-sm shadow-lg overflow-hidden">
-              <div className="aspect-video w-full bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center text-muted-foreground">
-                Demo View
-              </div>
+            <div className="rounded-xl border bg-background/50 backdrop-blur-sm shadow-lg overflow-hidden aspect-video">
+              <Image
+                src="/images/demo.png"
+                alt="Snooze workspace dashboard with project management and team collaboration"
+                width={1920}
+                height={1080}
+                className="w-full h-full object-cover"
+              />
             </div>
           </div>
         </div>
