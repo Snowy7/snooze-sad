@@ -103,6 +103,12 @@ export function CommandMenu() {
         } else if (e.key === "Q" || e.key === "q") {
           e.preventDefault()
           e.stopPropagation()
+          // Clear local storage before signing out
+          if (typeof window !== 'undefined') {
+            localStorage.removeItem('snooze_authenticated');
+            localStorage.removeItem('onboarding_completed');
+            localStorage.removeItem('spotlight_onboarding_completed');
+          }
           signOut()
           handled = true
         }
@@ -150,42 +156,42 @@ export function CommandMenu() {
             <CommandItem onSelect={() => runCommand(() => router.push("/dashboard"))}>
               <LayoutDashboard className="mr-2 h-4 w-4" />
               <span>Dashboard</span>
-              <CommandShortcut>⇧⌘D</CommandShortcut>
+              <CommandShortcut className="hidden sm:inline-flex">⇧⌘D</CommandShortcut>
             </CommandItem>
             <CommandItem onSelect={() => runCommand(() => router.push("/daily"))}>
               <ListChecks className="mr-2 h-4 w-4" />
               <span>Daily Tasks</span>
-              <CommandShortcut>⇧⌘T</CommandShortcut>
+              <CommandShortcut className="hidden sm:inline-flex">⇧⌘T</CommandShortcut>
             </CommandItem>
             <CommandItem onSelect={() => runCommand(() => router.push("/projects"))}>
               <KanbanSquare className="mr-2 h-4 w-4" />
               <span>Projects</span>
-              <CommandShortcut>⇧⌘P</CommandShortcut>
+              <CommandShortcut className="hidden sm:inline-flex">⇧⌘P</CommandShortcut>
             </CommandItem>
             <CommandItem onSelect={() => runCommand(() => router.push("/habits"))}>
               <Zap className="mr-2 h-4 w-4" />
               <span>Habits</span>
-              <CommandShortcut>⇧⌘H</CommandShortcut>
+              <CommandShortcut className="hidden sm:inline-flex">⇧⌘H</CommandShortcut>
             </CommandItem>
             <CommandItem onSelect={() => runCommand(() => router.push("/calendar"))}>
               <Calendar className="mr-2 h-4 w-4" />
               <span>Calendar</span>
-              <CommandShortcut>⇧⌘C</CommandShortcut>
+              <CommandShortcut className="hidden sm:inline-flex">⇧⌘C</CommandShortcut>
             </CommandItem>
             <CommandItem onSelect={() => runCommand(() => router.push("/notes"))}>
               <NotebookText className="mr-2 h-4 w-4" />
               <span>Notes</span>
-              <CommandShortcut>⇧⌘N</CommandShortcut>
+              <CommandShortcut className="hidden sm:inline-flex">⇧⌘N</CommandShortcut>
             </CommandItem>
             <CommandItem onSelect={() => runCommand(() => router.push("/focus"))}>
               <Timer className="mr-2 h-4 w-4" />
               <span>Focus Mode</span>
-              <CommandShortcut>⇧⌘F</CommandShortcut>
+              <CommandShortcut className="hidden sm:inline-flex">⇧⌘F</CommandShortcut>
             </CommandItem>
             <CommandItem onSelect={() => runCommand(() => router.push("/analytics"))}>
               <ChartPie className="mr-2 h-4 w-4" />
               <span>Analytics</span>
-              <CommandShortcut>⇧⌘A</CommandShortcut>
+              <CommandShortcut className="hidden sm:inline-flex">⇧⌘A</CommandShortcut>
             </CommandItem>
           </CommandGroup>
           <CommandSeparator />
@@ -193,17 +199,17 @@ export function CommandMenu() {
             <CommandItem onSelect={() => runCommand(() => router.push("/projects/new"))}>
               <Plus className="mr-2 h-4 w-4" />
               <span>New Project</span>
-              <CommandShortcut>⇧⌘X</CommandShortcut>
+              <CommandShortcut className="hidden sm:inline-flex">⇧⌘X</CommandShortcut>
             </CommandItem>
             <CommandItem onSelect={() => runCommand(() => router.push("/notes"))}>
               <Plus className="mr-2 h-4 w-4" />
               <span>New Note</span>
-              <CommandShortcut>⌘N</CommandShortcut>
+              <CommandShortcut className="hidden sm:inline-flex">⌘N</CommandShortcut>
             </CommandItem>
             <CommandItem onSelect={() => runCommand(() => router.push("/focus"))}>
               <Timer className="mr-2 h-4 w-4" />
               <span>Start Focus Session</span>
-              <CommandShortcut>⌘F</CommandShortcut>
+              <CommandShortcut className="hidden sm:inline-flex">⌘F</CommandShortcut>
             </CommandItem>
           </CommandGroup>
           <CommandSeparator />
@@ -211,17 +217,17 @@ export function CommandMenu() {
             <CommandItem onSelect={() => runCommand(() => setTheme("light"))}>
               <Sun className="mr-2 h-4 w-4" />
               <span>Light Mode</span>
-              <CommandShortcut>⌘L</CommandShortcut>
+              <CommandShortcut className="hidden sm:inline-flex">⌘L</CommandShortcut>
             </CommandItem>
             <CommandItem onSelect={() => runCommand(() => setTheme("dark"))}>
               <Moon className="mr-2 h-4 w-4" />
               <span>Dark Mode</span>
-              <CommandShortcut>⌘D</CommandShortcut>
+              <CommandShortcut className="hidden sm:inline-flex">⌘D</CommandShortcut>
             </CommandItem>
             <CommandItem onSelect={() => runCommand(() => setTheme("system"))}>
               <Settings className="mr-2 h-4 w-4" />
               <span>System</span>
-              <CommandShortcut>⌘Y</CommandShortcut>
+              <CommandShortcut className="hidden sm:inline-flex">⌘Y</CommandShortcut>
             </CommandItem>
           </CommandGroup>
           <CommandSeparator />
@@ -229,12 +235,20 @@ export function CommandMenu() {
             <CommandItem onSelect={() => runCommand(() => router.push("/settings"))}>
               <User className="mr-2 h-4 w-4" />
               <span>Settings</span>
-              <CommandShortcut>⌘,</CommandShortcut>
+              <CommandShortcut className="hidden sm:inline-flex">⌘,</CommandShortcut>
             </CommandItem>
-            <CommandItem onSelect={() => runCommand(async () => await signOut())}>
+            <CommandItem onSelect={() => runCommand(async () => {
+              // Clear local storage before signing out
+              if (typeof window !== 'undefined') {
+                localStorage.removeItem('snooze_authenticated');
+                localStorage.removeItem('onboarding_completed');
+                localStorage.removeItem('spotlight_onboarding_completed');
+              }
+              await signOut();
+            })}>
               <LogOut className="mr-2 h-4 w-4" />
               <span>Sign Out</span>
-              <CommandShortcut>⇧⌘Q</CommandShortcut>
+              <CommandShortcut className="hidden sm:inline-flex">⇧⌘Q</CommandShortcut>
             </CommandItem>
           </CommandGroup>
         </CommandList>

@@ -33,7 +33,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   // Redirect to auth if not authenticated
   React.useEffect(() => {
     if (!loading && !user) {
-      router.replace("/auth")
+      // Clear authentication flags
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('snooze_authenticated');
+      }
+      router.replace("/auth");
     }
   }, [user, loading, router])
 
@@ -67,7 +71,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         .catch((error) => {
           console.error("Failed to sync user:", error)
           setSyncing(false)
-          // If sync fails, sign out
+          // If sync fails, clear storage and sign out
+          if (typeof window !== 'undefined') {
+            localStorage.removeItem('snooze_authenticated');
+            localStorage.removeItem('onboarding_completed');
+            localStorage.removeItem('spotlight_onboarding_completed');
+          }
           signOut().then(() => {
             router.replace("/auth")
           })

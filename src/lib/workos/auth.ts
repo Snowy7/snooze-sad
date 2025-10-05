@@ -2,7 +2,7 @@
 
 import { WorkOS } from "@workos-inc/node";
 import { redirect } from "next/navigation";
-import { withAuth, signOut as authkitSignOut, saveSession, refreshSession } from "@workos-inc/authkit-nextjs";
+import { withAuth, signOut as authkitSignOut } from "@workos-inc/authkit-nextjs";
 
 const workos = new WorkOS(process.env.WORKOS_API_KEY);
 
@@ -33,17 +33,8 @@ export async function signInWithPassword(prevState: any, formData: FormData): Pr
       return { success: false, error: "Authentication failed" };
     }
 
-    await saveSession(
-      {
-        accessToken: authResponse.accessToken,
-        refreshToken: authResponse.refreshToken,
-        user: authResponse.user,
-        impersonator: authResponse.impersonator,
-      },
-      process.env.WORKOS_REDIRECT_URI || "http://snooze.snowydev.xyz/callback"
-    );
-
-    await refreshSession();
+    // Note: Session is managed by WorkOS AuthKit via the auth page
+    // This function returns user data for client-side handling
 
     return {
       success: true,
@@ -76,25 +67,15 @@ export async function signUpWithPassword(prevState: any, formData: FormData): Pr
       emailVerified: false,
     });
 
-    const authResponse = await workos.userManagement.authenticateWithPassword({
-      clientId: process.env.WORKOS_CLIENT_ID || "",
-      email,
-      password,
-    });
-
-    if (!authResponse.user) {
-      return { success: false, error: "Failed to authenticate after registration" };
+    // Send verification email
+    try {
+      await workos.userManagement.sendVerificationEmail({ userId: user.id });
+    } catch (e) {
+      console.error("Failed to send verification email:", e);
     }
 
-    await saveSession(
-      {
-        accessToken: authResponse.accessToken,
-        refreshToken: authResponse.refreshToken,
-        user: authResponse.user,
-        impersonator: authResponse.impersonator,
-      },
-      process.env.WORKOS_REDIRECT_URI || "http://snooze.snowydev.xyz/callback"
-    );
+    // Note: Session is managed by WorkOS AuthKit via the auth page
+    // This function returns user data for client-side handling
 
     return {
       success: true,
@@ -134,25 +115,19 @@ export async function getCurrentUser() {
 }
 
 export async function startGoogleOAuth() {
-  const redirectUri = process.env.WORKOS_REDIRECT_URI || 
-    (typeof window !== 'undefined' ? `${window.location.origin}/callback` : "http://snooze.snowydev.xyz/callback");
-  
   const url = workos.userManagement.getAuthorizationUrl({
     clientId: process.env.WORKOS_CLIENT_ID || "",
     provider: "GoogleOAuth",
-    redirectUri,
+    redirectUri: process.env.WORKOS_REDIRECT_URI || "",
   });
   redirect(url);
 }
 
 export async function startGitHubOAuth() {
-  const redirectUri = process.env.WORKOS_REDIRECT_URI || 
-    (typeof window !== 'undefined' ? `${window.location.origin}/callback` : "http://snooze.snowydev.xyz/callback");
-  
   const url = workos.userManagement.getAuthorizationUrl({
     clientId: process.env.WORKOS_CLIENT_ID || "",
     provider: "GitHubOAuth",
-    redirectUri,
+    redirectUri: process.env.WORKOS_REDIRECT_URI || "",
   });
   redirect(url);
 }

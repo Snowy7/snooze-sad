@@ -32,7 +32,15 @@ export default function SettingsPage() {
   const [hasChanges, setHasChanges] = useState(false)
 
   async function handleSignOut() {
-    await signOut()
+    // Clear local storage before signing out
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('snooze_authenticated');
+      localStorage.removeItem('onboarding_completed');
+      localStorage.removeItem('spotlight_onboarding_completed');
+    }
+    
+    toast.success("Signing out...");
+    await signOut();
   }
 
   async function handleProfilePictureChange(e: React.ChangeEvent<HTMLInputElement>) {
