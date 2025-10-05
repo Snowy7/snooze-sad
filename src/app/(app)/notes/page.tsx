@@ -107,8 +107,8 @@ export default function NotesPage() {
   }
 
   return (
-    <div className="flex gap-0 h-[calc(100vh-3.5rem)] animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <div className="w-80 border-r flex flex-col bg-muted/30">
+    <div className="flex flex-col md:flex-row gap-0 h-[calc(100vh-3.5rem)] animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <div className="w-full md:w-80 border-b md:border-r md:border-b-0 flex flex-col bg-muted/30">
         <div className="p-4 border-b bg-background/50">
           <div className="flex items-center gap-2">
             <div className="relative flex-1">
@@ -118,7 +118,7 @@ export default function NotesPage() {
             <Button size="sm" className="gap-1" onClick={handleNew}><Plus className="h-4 w-4" /></Button>
           </div>
         </div>
-        <div className="flex-1 overflow-y-auto p-2">
+        <div className="flex-1 overflow-y-auto p-2 max-h-48 md:max-h-none">
           {filteredNotes.length === 0 ? (
             <div className="text-center py-8 text-sm text-muted-foreground px-4">
               {search ? "No notes found" : "No notes yet"}
@@ -126,29 +126,37 @@ export default function NotesPage() {
           ) : (
             <div className="space-y-1">
               {filteredNotes.map((n: any) => (
-                <div key={n._id} className="group">
-                  <button 
+                <div key={n._id} className="group relative">
+                  <div 
                     onClick={() => setSelectedNoteId(n._id)}
-                    className={`w-full text-left p-3 rounded-lg transition-colors ${selectedNoteId === n._id ? 'bg-accent' : 'hover:bg-accent/50'}`}
+                    className={`w-full text-left p-3 rounded-lg transition-colors cursor-pointer ${selectedNoteId === n._id ? 'bg-accent' : 'hover:bg-accent/50'}`}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        setSelectedNoteId(n._id);
+                      }
+                    }}
                   >
                     <div className="flex items-start gap-2">
                       <FileText className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
-                      <div className="flex-1 min-w-0">
+                      <div className="flex-1 min-w-0 pr-6">
                         <div className="font-medium truncate text-sm">{n.title}</div>
                         <div className="text-xs text-muted-foreground truncate">
                           {format(new Date(n.createdAt), "MMM d, yyyy")}
                         </div>
                       </div>
-                      <Button 
-                        size="sm" 
-                        variant="ghost" 
-                        className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                        onClick={(e) => { e.stopPropagation(); handleDelete(n._id); }}
-                      >
-                        <Trash2 className="h-3 w-3 text-destructive" />
-                      </Button>
                     </div>
-                  </button>
+                  </div>
+                  <Button 
+                    size="sm" 
+                    variant="ghost" 
+                    className="absolute top-2 right-2 h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                    onClick={(e) => { e.stopPropagation(); handleDelete(n._id); }}
+                  >
+                    <Trash2 className="h-3 w-3 text-destructive" />
+                  </Button>
                 </div>
               ))}
             </div>
@@ -169,19 +177,19 @@ export default function NotesPage() {
           </div>
         ) : (
           <>
-            <div className="p-6 pb-4 border-b bg-background/50">
-              <div className="flex items-center gap-4">
+            <div className="p-4 md:p-6 pb-4 border-b bg-background/50">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
                 <Input 
                   placeholder="Note title..." 
                   value={title} 
                   onChange={e => { setTitle(e.target.value); setHasChanges(true); }}
-                  className="text-2xl font-bold border-none focus-visible:ring-0 flex-1" 
+                  className="text-xl md:text-2xl font-bold border-none focus-visible:ring-0 flex-1 w-full" 
                 />
                 <Button 
                   size="sm" 
                   onClick={() => handleSave(false)} 
                   disabled={!hasChanges || isSaving}
-                  className="gap-2"
+                  className="gap-2 w-full sm:w-auto"
                 >
                   <Save className="h-4 w-4" />
                   {isSaving ? "Saving..." : hasChanges ? "Save" : "Saved"}

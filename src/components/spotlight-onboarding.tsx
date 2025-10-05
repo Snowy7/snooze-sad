@@ -84,9 +84,20 @@ export function SpotlightOnboarding() {
   const [isActive, setIsActive] = useState(false)
   const [currentStep, setCurrentStep] = useState(0)
   const [targetRect, setTargetRect] = useState<DOMRect | null>(null)
+  const [isMobile, setIsMobile] = useState(false)
   const [selectedAccent, setSelectedAccent] = useState<string>(
     typeof window !== 'undefined' ? localStorage.getItem('accentColor') || 'slate' : 'slate'
   )
+
+  useEffect(() => {
+    // Detect mobile
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   useEffect(() => {
     const hasSeenOnboarding = localStorage.getItem("spotlight_onboarding_completed")
@@ -115,6 +126,12 @@ export function SpotlightOnboarding() {
     if (!isActive) return
 
     const updateTargetRect = () => {
+      // On mobile, don't show highlights
+      if (isMobile) {
+        setTargetRect(null);
+        return;
+      }
+
       const step = steps[currentStep]
       const target = document.querySelector(step.targetSelector)
       
@@ -134,7 +151,7 @@ export function SpotlightOnboarding() {
       window.removeEventListener("resize", updateTargetRect)
       window.removeEventListener("scroll", updateTargetRect)
     }
-  }, [isActive, currentStep])
+  }, [isActive, currentStep, isMobile])
 
   const handleAccentColorChange = async (color: string) => {
     setSelectedAccent(color)
@@ -215,14 +232,14 @@ export function SpotlightOnboarding() {
 
   // Calculate tooltip position
   const getTooltipStyle = () => {
-    // For first step, accent color step, or when target not found, center the tooltip
-    if (!targetRect || isFirstStep || isAccentColorStep) {
+    // On mobile or for first step, accent color step, or when target not found, center the tooltip
+    if (isMobile || !targetRect || isFirstStep || isAccentColorStep) {
       return {
         top: "50%",
         left: "50%",
         transform: "translate(-50%, -50%)",
-        maxWidth: isAccentColorStep ? "700px" : "600px",
-        padding: "0 20px"
+        maxWidth: isMobile ? "calc(100vw - 2rem)" : (isAccentColorStep ? "700px" : "600px"),
+        padding: isMobile ? "0 1rem" : "0 20px"
       }
     }
 
@@ -298,7 +315,7 @@ export function SpotlightOnboarding() {
   return (
     <div className="fixed inset-0 z-[9999]">
       {/* Dark overlay with cutout using SVG mask */}
-      {targetRect && !isFirstStep && !isAccentColorStep ? (
+      {targetRect && !isFirstStep && !isAccentColorStep && !isMobile ? (
         <>
           {/* Blurred dark overlay with SVG cutout */}
           <div className="absolute inset-0 pointer-events-auto" onClick={handleSkip}>
@@ -353,7 +370,7 @@ export function SpotlightOnboarding() {
       )}
       
       {/* Blue highlight ring around the spotlight */}
-      {targetRect && !isFirstStep && !isAccentColorStep && (
+      {targetRect && !isFirstStep && !isAccentColorStep && !isMobile && (
         <>
           <div
             className="absolute rounded-xl transition-all duration-300 pointer-events-none"
@@ -476,13 +493,13 @@ export function SpotlightOnboarding() {
           }
         `}</style>
         
-        <div className={`bg-card border border-border rounded-lg shadow-2xl p-6 space-y-4 w-full bounce-in ${
-          isAccentColorStep ? "max-w-2xl" : "max-w-md"
+        <div className={`bg-card border border-border rounded-lg shadow-2xl space-y-4 w-full bounce-in ${
+          isMobile ? "p-4 max-w-[calc(100vw-2rem)]" : (isAccentColorStep ? "p-6 max-w-2xl" : "p-6 max-w-md")
         }`}>
           <div className="flex items-start justify-between">
-            <div className="flex-1">
+              <div className="flex-1">
               <div className="space-y-2">
-                <h3 className="text-lg font-semibold flex items-center gap-2">
+                <h3 className={`${isMobile ? "text-base" : "text-lg"} font-semibold flex items-center gap-2 flex-wrap`}>
                   {isFirstStep ? (
                     <>
                       {step.title}
@@ -502,7 +519,7 @@ export function SpotlightOnboarding() {
                     step.title
                   )}
                 </h3>
-                {step.shortcut && (
+                {step.shortcut && !isMobile && (
                   <div className="flex flex-wrap items-center gap-2 mt-2">
                     {step.shortcut === "sidebar" && (
                       <>

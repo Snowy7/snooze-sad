@@ -34,27 +34,27 @@ export default function DashboardPage() {
 
   return (
     <>
-      <div className="space-y-6 p-6 max-w-7xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
-        <div className="flex items-center justify-between mb-2">
+      <div className="space-y-6 p-4 sm:p-6 max-w-7xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-2">
           <div>
             <h1 className="text-3xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">Welcome back!</h1>
             <p className="text-sm text-muted-foreground mt-1">{format(new Date(), "EEEE, MMMM d, yyyy")}</p>
           </div>
-        <div className="flex gap-2" data-onboarding="quick-actions">
-          <Link href="/daily">
-            <Button size="sm" variant="outline" className="gap-2">
+        <div className="flex flex-col sm:flex-row gap-2" data-onboarding="quick-actions">
+          <Link href="/daily" className="w-full sm:w-auto">
+            <Button size="sm" variant="outline" className="gap-2 w-full sm:w-auto">
               <ListChecks className="h-4 w-4" />
               Daily Tasks
             </Button>
           </Link>
-          <Link href="/notes">
-            <Button size="sm" variant="outline" className="gap-2">
+          <Link href="/notes" className="w-full sm:w-auto">
+            <Button size="sm" variant="outline" className="gap-2 w-full sm:w-auto">
               <FileText className="h-4 w-4" />
               New Note
             </Button>
           </Link>
-          <Link href="/focus">
-            <Button size="sm" className="gap-2">
+          <Link href="/focus" className="w-full sm:w-auto">
+            <Button size="sm" className="gap-2 w-full sm:w-auto">
               <Zap className="h-4 w-4" />
               Start Focus
             </Button>

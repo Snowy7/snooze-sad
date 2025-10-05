@@ -14,6 +14,7 @@ import { signInWithPassword, signUpWithPassword, startGoogleOAuth, startGitHubOA
 import Link from "next/link";
 import { useTheme } from "next-themes";
 import { Logo } from "@/components/logo";
+import { EmailVerification } from "@/components/email-verification";
 
 export default function AuthPage() {
   const router = useRouter();
@@ -22,6 +23,8 @@ export default function AuthPage() {
   const [isSignUp, setIsSignUp] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [needsVerification, setNeedsVerification] = useState(false);
+  const [verificationEmail, setVerificationEmail] = useState("");
 
   useEffect(() => {
     if (user) router.replace("/dashboard");
@@ -57,13 +60,41 @@ export default function AuthPage() {
         toast.success(isSignUp ? "Account created" : "Welcome back");
         router.replace("/dashboard");
       } else {
-        toast.error(result?.error || "Authentication failed");
+        // Check if error is about email verification
+        if (result?.error?.toLowerCase().includes("verif") || result?.error?.toLowerCase().includes("email")) {
+          setVerificationEmail(body.email);
+          setNeedsVerification(true);
+          toast.info("Please verify your email to continue");
+        } else {
+          toast.error(result?.error || "Authentication failed");
+        }
       }
     } catch (err) {
       toast.error("Network error. Please try again.");
     } finally {
       setSubmitting(false);
     }
+  }
+
+  const handleVerified = () => {
+    toast.success("Email verified! Redirecting...");
+    router.replace("/dashboard");
+  };
+
+  const handleBackToAuth = () => {
+    setNeedsVerification(false);
+    setVerificationEmail("");
+  };
+
+  // Show verification screen if needed
+  if (needsVerification && verificationEmail) {
+    return (
+      <EmailVerification
+        email={verificationEmail}
+        onVerified={handleVerified}
+        onBack={handleBackToAuth}
+      />
+    );
   }
 
   return (

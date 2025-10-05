@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { CalendarDays, Focus, BarChart3, CheckCircle } from "lucide-react";
 import { MarketingNavbar } from "@/components/marketing/navbar";
+import { AnimatedGrid } from "@/components/animated-grid";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -66,7 +67,10 @@ export default function Home() {
       
       {/* Hero Section */}
       <section className="relative isolate overflow-hidden py-24 sm:py-32">
-        <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,_var(--tw-gradient-stops))] from-blue-500/20 via-transparent to-transparent" />
+        <div className="absolute inset-0 -z-10">
+          <AnimatedGrid />
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,_var(--tw-gradient-stops))] from-blue-500/20 via-transparent to-transparent" />
+        </div>
         <div className="mx-auto max-w-5xl px-6 text-center">
           <h1 className="text-5xl font-bold tracking-tight sm:text-6xl bg-gradient-to-br from-foreground to-foreground/70 bg-clip-text text-transparent">
             Stay Organized. Stay Focused. <br className="hidden sm:block" />Stay in Flow.

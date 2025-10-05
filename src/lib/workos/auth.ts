@@ -113,7 +113,14 @@ export async function signUpWithPassword(prevState: any, formData: FormData): Pr
 }
 
 export async function signOut() {
-  await authkitSignOut();
+  try {
+    await authkitSignOut();
+  } catch (error) {
+    console.error('Sign out error:', error);
+  }
+  
+  // Always redirect to /auth regardless of environment
+  // The redirect URL should be configured in WorkOS dashboard
   redirect("/auth");
 }
 
@@ -127,21 +134,48 @@ export async function getCurrentUser() {
 }
 
 export async function startGoogleOAuth() {
+  const redirectUri = process.env.WORKOS_REDIRECT_URI || 
+    (typeof window !== 'undefined' ? `${window.location.origin}/callback` : "http://snooze.snowydev.xyz/callback");
+  
   const url = workos.userManagement.getAuthorizationUrl({
     clientId: process.env.WORKOS_CLIENT_ID || "",
     provider: "GoogleOAuth",
-    redirectUri: process.env.WORKOS_REDIRECT_URI || "http://snooze.snowydev.xyz/callback",
+    redirectUri,
   });
   redirect(url);
 }
 
 export async function startGitHubOAuth() {
+  const redirectUri = process.env.WORKOS_REDIRECT_URI || 
+    (typeof window !== 'undefined' ? `${window.location.origin}/callback` : "http://snooze.snowydev.xyz/callback");
+  
   const url = workos.userManagement.getAuthorizationUrl({
     clientId: process.env.WORKOS_CLIENT_ID || "",
     provider: "GitHubOAuth",
-    redirectUri: process.env.WORKOS_REDIRECT_URI || "http://snooze.snowydev.xyz/callback",
+    redirectUri,
   });
   redirect(url);
+}
+
+// Email verification functions
+export async function sendVerificationCode(email: string): Promise<{ success: boolean; error?: string }> {
+  try {
+    await workos.userManagement.sendVerificationEmail({ userId: email });
+    return { success: true };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Failed to send verification email";
+    return { success: false, error: message };
+  }
+}
+
+export async function verifyEmailCode(userId: string, code: string): Promise<{ success: boolean; error?: string }> {
+  try {
+    await workos.userManagement.verifyEmail({ userId, code });
+    return { success: true };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Invalid verification code";
+    return { success: false, error: message };
+  }
 }
 
 
