@@ -24,7 +24,14 @@ function useAuthFromAuthKit() {
   const authenticated = !!user && !!accessToken && !loading;
 
   const stableAccessToken = useRef<string | null>(null);
-  if (accessToken && !tokenError) {
+  
+  // Clear token ref when user signs out
+  if (!user || !accessToken || tokenError) {
+    if (stableAccessToken.current) {
+      console.log('[Convex Auth] Clearing stale access token');
+      stableAccessToken.current = null;
+    }
+  } else if (accessToken && !tokenError) {
     stableAccessToken.current = accessToken;
     
     // Decode JWT to inspect (for debugging only - don't verify signature here)
@@ -45,13 +52,19 @@ function useAuthFromAuthKit() {
   }
 
   const fetchAccessToken = useCallback(async () => {
+    // Don't return token if user is not authenticated
+    if (!user || tokenError) {
+      console.log('[Convex Auth] No access token available - user signed out', { tokenError });
+      return null;
+    }
+    
     if (stableAccessToken.current && !tokenError) {
       console.log('[Convex Auth] Returning stable access token');
       return stableAccessToken.current;
     }
     console.log('[Convex Auth] No access token available', { tokenError });
     return null;
-  }, [tokenError]);
+  }, [user, tokenError]);
 
   // Log auth state changes
   console.log('[Convex Auth] State:', { 

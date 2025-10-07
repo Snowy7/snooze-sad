@@ -5,9 +5,7 @@
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",
-    "start": "next start",
-    "verify-seo": "node scripts/verify-seo.js",
-    "verify-seo:prod": "SITE_URL=https://snooze.app node scripts/verify-seo.js"
+    "start": "next start"
   },
   "dependencies": {
     "@convex-dev/workos": "^0.0.1",

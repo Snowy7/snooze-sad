@@ -238,12 +238,6 @@ export function CommandMenu() {
               <CommandShortcut className="hidden sm:inline-flex">⌘,</CommandShortcut>
             </CommandItem>
             <CommandItem onSelect={() => runCommand(async () => {
-              // Clear local storage before signing out
-              if (typeof window !== 'undefined') {
-                localStorage.removeItem('snooze_authenticated');
-                localStorage.removeItem('onboarding_completed');
-                localStorage.removeItem('spotlight_onboarding_completed');
-              }
               await signOut();
             })}>
               <LogOut className="mr-2 h-4 w-4" />

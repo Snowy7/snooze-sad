@@ -9,11 +9,12 @@ import { Mail, Loader2, CheckCircle } from "lucide-react";
 
 interface EmailVerificationProps {
   email: string;
+  pendingAuthToken: string;
   onVerified: () => void;
   onBack: () => void;
 }
 
-export function EmailVerification({ email, onVerified, onBack }: EmailVerificationProps) {
+export function EmailVerification({ email, pendingAuthToken, onVerified, onBack }: EmailVerificationProps) {
   const [code, setCode] = useState(["", "", "", "", "", ""]);
   const [verifying, setVerifying] = useState(false);
   const [resending, setResending] = useState(false);
@@ -87,20 +88,15 @@ export function EmailVerification({ email, onVerified, onBack }: EmailVerificati
 
     setVerifying(true);
     try {
-      // Call verification API
-      const response = await fetch("/api/auth/verify-email", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, code: verificationCode }),
-      });
+      // Dynamically import the verification function
+      const { verifyEmailWithCode } = await import("@/lib/workos/auth");
+      const result = await verifyEmailWithCode(verificationCode, pendingAuthToken);
 
-      const data = await response.json();
-
-      if (data.success) {
+      if (result.success) {
         toast.success("Email verified successfully!");
         onVerified();
       } else {
-        toast.error(data.error || "Invalid verification code");
+        toast.error(result.error || "Invalid verification code");
         setCode(["", "", "", "", "", ""]);
         inputRefs.current[0]?.focus();
       }
@@ -113,25 +109,8 @@ export function EmailVerification({ email, onVerified, onBack }: EmailVerificati
 
   const handleResend = async () => {
     setResending(true);
-    try {
-      const response = await fetch("/api/auth/resend-verification", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        toast.success("Verification code sent!");
-      } else {
-        toast.error(data.error || "Failed to resend code");
-      }
-    } catch (error) {
-      toast.error("Network error. Please try again.");
-    } finally {
-      setResending(false);
-    }
+    toast.info("Resend functionality coming soon. Check your email for the code sent earlier.");
+    setResending(false);
   };
 
   return (

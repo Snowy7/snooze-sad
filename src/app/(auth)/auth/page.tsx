@@ -25,6 +25,7 @@ export default function AuthPage() {
   const [submitting, setSubmitting] = useState(false);
   const [needsVerification, setNeedsVerification] = useState(false);
   const [verificationEmail, setVerificationEmail] = useState("");
+  const [pendingAuthToken, setPendingAuthToken] = useState("");
 
   useEffect(() => {
     if (user) router.replace("/dashboard");
@@ -60,9 +61,10 @@ export default function AuthPage() {
         toast.success(isSignUp ? "Account created" : "Welcome back");
         router.replace("/dashboard");
       } else {
-        // Check if error is about email verification
-        if (result?.error?.toLowerCase().includes("verif") || result?.error?.toLowerCase().includes("email")) {
+        // Check if needs email verification
+        if (result?.needsEmailVerification && result?.pendingAuthenticationToken) {
           setVerificationEmail(body.email);
+          setPendingAuthToken(result.pendingAuthenticationToken);
           setNeedsVerification(true);
           toast.info("Please verify your email to continue");
         } else {
@@ -84,13 +86,15 @@ export default function AuthPage() {
   const handleBackToAuth = () => {
     setNeedsVerification(false);
     setVerificationEmail("");
+    setPendingAuthToken("");
   };
 
   // Show verification screen if needed
-  if (needsVerification && verificationEmail) {
+  if (needsVerification && verificationEmail && pendingAuthToken) {
     return (
       <EmailVerification
         email={verificationEmail}
+        pendingAuthToken={pendingAuthToken}
         onVerified={handleVerified}
         onBack={handleBackToAuth}
       />
