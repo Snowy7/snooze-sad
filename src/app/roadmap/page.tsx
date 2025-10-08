@@ -142,7 +142,7 @@ export default function RoadmapPage() {
 
   const handleVote = async (featureId: any, vote: number) => {
     try {
-      await voteFeature({ featureRequestId: featureId, vote })
+      await voteFeature({ featureRequestId: featureId, vote: vote > 0 ? "up" : "down" })
     } catch (error) {
       toast.error("Please sign in to vote")
     }
