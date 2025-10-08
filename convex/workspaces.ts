@@ -63,10 +63,12 @@ export const getWorkspace = query({
       )
       .unique();
 
-    if (!membership) throw new Error("Not a member of this workspace");
+    // Return null if not a member (UI will handle gracefully)
+    if (!membership) return null;
 
     const workspace = await ctx.db.get(workspaceId);
-    if (!workspace) throw new Error("Workspace not found");
+    // Return null if workspace doesn't exist
+    if (!workspace) return null;
 
     return {
       ...workspace,
@@ -213,7 +215,7 @@ export const listMembers = query({
   args: { workspaceId: v.id("workspaces") },
   handler: async (ctx, { workspaceId }) => {
     const userId = await getUserId(ctx);
-    if (!userId) throw new Error("User not found. Please try again.");
+    if (!userId) return [];
 
     // Check if user is a member
     const membership = await ctx.db
@@ -223,7 +225,8 @@ export const listMembers = query({
       )
       .unique();
 
-    if (!membership) throw new Error("Not a member of this workspace");
+    // Return empty array if not a member (UI will handle gracefully)
+    if (!membership) return [];
 
     // Get all members
     const members = await ctx.db

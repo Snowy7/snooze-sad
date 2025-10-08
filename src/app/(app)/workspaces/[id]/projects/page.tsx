@@ -3,25 +3,22 @@
 import { useState } from "react"
 import { useQuery } from "convex/react"
 import { api } from "@/lib/convex"
-import { useOwnerId } from "@/hooks/use-owner"
-import { useWorkspace } from "@/contexts/workspace-context"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Plus, FolderKanban, ChevronRight } from "lucide-react"
 import { format } from "date-fns"
-import { useRouter } from "next/navigation"
+import { useParams, useRouter } from "next/navigation"
 import Link from "next/link"
 
-export default function ProjectsPage() {
+export default function WorkspaceProjectsPage() {
   const router = useRouter()
-  const ownerId = useOwnerId()
-  const { currentWorkspaceId } = useWorkspace()
+  const params = useParams()
+  const workspaceId = params.id as string
   
-  // My Projects (personal section) = all projects user owns across ALL workspaces
-  // When in personal section (no workspace), we want ALL user's projects
+  // Fetch all projects in this workspace that user has access to
   const projects = useQuery(
     api.functions.listProjects,
-    { ownerId }
+    { workspaceId }
   ) || []
 
   const activeProjects = projects.filter((p: any) => p.status !== "archived" && p.status !== "completed")
@@ -32,9 +29,9 @@ export default function ProjectsPage() {
     <div className="space-y-6 p-6 max-w-7xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">My Projects</h1>
+          <h1 className="text-2xl font-bold">All Workspace Projects</h1>
           <p className="text-sm text-muted-foreground">
-            All projects you own across all workspaces
+            All projects in this workspace you have access to
           </p>
         </div>
         <Link href="/projects/new">
@@ -154,3 +151,4 @@ function ProjectCard({ project }: { project: any }) {
     </Link>
   )
 }
+

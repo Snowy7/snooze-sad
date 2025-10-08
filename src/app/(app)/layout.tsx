@@ -163,9 +163,11 @@ function WorkspaceCheckAndRender({ children }: { children: React.ReactNode }) {
   return (
     <SidebarProvider>
       <AppSidebar />
-      <SidebarInset>
-        <AppTopbar />
-        <div className="">{children}</div>
+      <SidebarInset className="bg-background p-4">
+        <div className="bg-content-area rounded-2xl border shadow-sm overflow-hidden flex flex-col h-[calc(100vh-2rem)]">
+          <AppTopbar />
+          <div className="flex-1 overflow-auto">{children}</div>
+        </div>
       </SidebarInset>
       <SpotlightOnboarding />
     </SidebarProvider>

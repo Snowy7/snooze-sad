@@ -14,6 +14,7 @@ import type {
   FunctionReference,
 } from "convex/server";
 import type * as activities from "../activities.js";
+import type * as featureRequests from "../featureRequests.js";
 import type * as files from "../files.js";
 import type * as functions from "../functions.js";
 import type * as http from "../http.js";
@@ -33,6 +34,7 @@ import type * as workspaces from "../workspaces.js";
  */
 declare const fullApi: ApiFromModules<{
   activities: typeof activities;
+  featureRequests: typeof featureRequests;
   files: typeof files;
   functions: typeof functions;
   http: typeof http;

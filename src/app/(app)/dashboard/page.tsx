@@ -1,31 +1,78 @@
 "use client"
 
-import { useQuery } from "convex/react";
+import { useQuery, useMutation } from "convex/react";
 import { api } from "@/lib/convex";
 import { format } from "date-fns";
 import { useOwnerId } from "@/hooks/use-owner";
+import { useAuth } from "@workos-inc/authkit-nextjs/components";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { CheckCircle2, Circle, TrendingUp, Clock, FileText, Plus, Zap, ListChecks, ArrowRight } from "lucide-react";
+import { CheckCircle2, Circle, TrendingUp, Clock, FileText, Plus, Zap, ListChecks, ArrowRight, Sparkles, Target, Calendar as CalendarIcon } from "lucide-react";
 import Link from "next/link";
 import { WeeklyProgress } from "@/components/dashboard/weekly-progress";
 import { DashboardSkeleton } from "@/components/dashboard/dashboard-skeleton";
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 export default function DashboardPage() {
   const today = format(new Date(), "yyyy-MM-dd")
   const ownerId = useOwnerId()
+  const { user } = useAuth()
+  const router = useRouter()
   const data = useQuery(api.functions.listDashboard, { ownerId, today })
   const projects = useQuery(api.functions.listProjects, { ownerId }) || []
-  const tasks = (data?.tasksToday ?? []).slice(0, 5)
-  const overdue = (data?.overdue ?? []).slice(0, 3)
-  const notes = (data?.notes ?? []).slice(0, 3)
-  const recentProjects = projects?.filter((p: any) => !p.status || p.status === "active").slice(0, 4) ?? []
-  const upcomingTasks = (data?.tasksToday ?? []).filter((t: any) => t.status !== "done" && t.endDate).slice(0, 4)
+  const upsertTask = useMutation(api.functions.upsertTask)
+  
+  // Generate last 7 days for weekly progress
+  const weekDates = Array.from({ length: 7 }, (_, i) => {
+    const date = new Date()
+    date.setDate(date.getDate() - (6 - i))
+    return format(date, "yyyy-MM-dd")
+  })
+  const weeklyProgressData = useQuery(api.functions.getWeeklyProgress, { ownerId, dates: weekDates })
+  
+  const tasks = (data?.tasksToday ?? []).slice(0, 8)
+  const overdue = (data?.overdue ?? []).slice(0, 5)
+  const recentProjects = projects?.filter((p: any) => !p.status || p.status === "active").slice(0, 6) ?? []
+  const upcomingTasks = (data?.tasksToday ?? []).filter((t: any) => t.status !== "done" && t.endDate).slice(0, 5)
   const completed = tasks.filter((t: any) => t.status === "done").length
   const total = tasks.length || 1
+  const completionRate = Math.round((completed / total) * 100)
+  
+  // Personalized greeting based on time of day
+  const getGreeting = () => {
+    const hour = new Date().getHours()
+    if (hour < 12) return "Good morning"
+    if (hour < 18) return "Good afternoon"
+    return "Good evening"
+  }
+  
+  // Motivational message based on progress
+  const getMotivationalMessage = () => {
+    if (overdue.length > 0) return "Let's tackle those overdue tasks!"
+    if (completionRate === 100) return "Amazing work today! You're crushing it!"
+    if (completionRate >= 75) return "You're doing great! Keep it up!"
+    if (completionRate >= 50) return "You're halfway there! Stay focused!"
+    if (completed > 0) return "Great start! Keep the momentum going!"
+    return "Ready to make today productive? Let's do this!"
+  }
 
-  // Check if user has completed onboarding
+  const handleToggleTask = async (task: any) => {
+    const newStatus = task.status === "done" ? "todo" : "done"
+    await upsertTask({
+      id: task._id,
+      title: task.title,
+      status: newStatus,
+      ownerId: task.ownerId,
+      projectId: task.projectId,
+      order: task.order,
+      startDate: task.startDate,
+      endDate: task.endDate,
+      priority: task.priority,
+      tags: task.tags,
+      description: task.description,
+    })
+  }
 
   // Show skeleton while loading
   if (data === undefined || projects === undefined) {
@@ -33,265 +80,235 @@ export default function DashboardPage() {
   }
 
   return (
-    <>
-      <div className="space-y-6 p-4 sm:p-6 max-w-7xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-2">
-          <div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">Welcome back!</h1>
-            <p className="text-sm text-muted-foreground mt-1">{format(new Date(), "EEEE, MMMM d, yyyy")}</p>
+    <div className="space-y-6 p-6 max-w-[1600px] mx-auto">
+      {/* Hero Greeting */}
+      <div className="relative overflow-hidden rounded-2xl p-8 bg-gradient-to-br from-primary/5 via-primary/10 to-primary/5">
+        <div className="relative">
+          <h1 className="text-4xl font-bold mb-2 flex items-center gap-3">
+            {getGreeting()}, {user?.firstName || "there"}!
+            <span className="inline-block animate-wave origin-[70%_70%]">👋</span>
+          </h1>
+          <p className="text-muted-foreground mb-4">{format(new Date(), "EEEE, MMMM d, yyyy")}</p>
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 text-primary text-sm font-medium">
+            <Sparkles className="h-3.5 w-3.5" />
+            {getMotivationalMessage()}
           </div>
-        <div className="flex flex-col sm:flex-row gap-2" data-onboarding="quick-actions">
-          <Link href="/daily" className="w-full sm:w-auto">
-            <Button size="sm" variant="outline" className="gap-2 w-full sm:w-auto">
-              <ListChecks className="h-4 w-4" />
-              Daily Tasks
-            </Button>
-          </Link>
-          <Link href="/notes" className="w-full sm:w-auto">
-            <Button size="sm" variant="outline" className="gap-2 w-full sm:w-auto">
-              <FileText className="h-4 w-4" />
-              New Note
-            </Button>
-          </Link>
-          <Link href="/focus" className="w-full sm:w-auto">
-            <Button size="sm" className="gap-2 w-full sm:w-auto">
-              <Zap className="h-4 w-4" />
-              Start Focus
-            </Button>
-          </Link>
         </div>
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid gap-4 md:grid-cols-4" data-onboarding="stats">
-        <StatCard 
-          label="Today's Tasks" 
-          value={`${completed}/${total}`} 
-          icon={<CheckCircle2 className="h-5 w-5" />} 
-          trend="+2 from yesterday"
-          color="blue"
-        />
-        <StatCard 
-          label="Overdue" 
-          value={overdue.length} 
-          icon={<Clock className="h-5 w-5" />} 
-          trend={overdue.length === 0 ? "All caught up!" : "Needs attention"}
-          color="red"
-        />
-        <StatCard 
-          label="Completion Rate" 
-          value={`${Math.round((completed / total) * 100)}%`} 
-          icon={<TrendingUp className="h-5 w-5" />} 
-          trend="Last 7 days"
-          color="green"
-        />
-        <StatCard 
-          label="Active Projects" 
-          value={recentProjects.length} 
-          icon={<FileText className="h-5 w-5" />} 
-          trend={`${upcomingTasks.length} upcoming`}
-          color="purple"
-        />
+      {/* Compact Stats Row */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <Card className="p-4">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-lg bg-blue-500/10 flex items-center justify-center">
+              <Target className="h-5 w-5 text-blue-500" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold">{completed}/{total}</p>
+              <p className="text-xs text-muted-foreground">Today</p>
+            </div>
+          </div>
+        </Card>
+
+        <Card className="p-4">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-lg bg-red-500/10 flex items-center justify-center">
+              <Clock className="h-5 w-5 text-red-500" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold">{overdue.length}</p>
+              <p className="text-xs text-muted-foreground">Overdue</p>
+            </div>
+          </div>
+        </Card>
+
+        <Card className="p-4">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-lg bg-green-500/10 flex items-center justify-center">
+              <TrendingUp className="h-5 w-5 text-green-500" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold">{completionRate}%</p>
+              <p className="text-xs text-muted-foreground">Complete</p>
+            </div>
+          </div>
+        </Card>
+
+        <Card className="p-4">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-lg bg-purple-500/10 flex items-center justify-center">
+              <FileText className="h-5 w-5 text-purple-500" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold">{recentProjects.length}</p>
+              <p className="text-xs text-muted-foreground">Projects</p>
+            </div>
+          </div>
+        </Card>
       </div>
 
-      {/* Main Content Grid */}
+      {/* Main 2-Column Layout */}
       <div className="grid gap-6 lg:grid-cols-3">
-        {/* Left Column - Tasks */}
+        {/* Left Column - Primary Focus */}
         <div className="lg:col-span-2 space-y-6">
+          {/* Today's Focus */}
           <Card className="p-6">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold">Today's Tasks</h2>
+              <div>
+                <h2 className="text-xl font-bold">Today's Focus</h2>
+                <p className="text-sm text-muted-foreground mt-0.5">{getMotivationalMessage()}</p>
+              </div>
               <Link href="/daily">
                 <Button size="sm" variant="ghost" className="gap-1">
                   View all
-                  <ArrowRight className="h-3 w-3" />
+                  <ArrowRight className="h-3.5 w-3.5" />
                 </Button>
               </Link>
             </div>
-            <ul className="space-y-2">
-              {tasks.length === 0 ? (
-                <li className="text-sm text-muted-foreground py-12 text-center border-2 border-dashed rounded-lg">
-                  <div className="flex flex-col items-center gap-2">
-                    <CheckCircle2 className="h-8 w-8 text-muted-foreground/50" />
-                    <p>No tasks for today</p>
-                    <Link href="/daily">
-                      <Button size="sm" variant="outline" className="mt-2">Add Task</Button>
-                    </Link>
-                  </div>
-                </li>
-              ) : (
-                tasks.map((t: any) => (
-                  <li key={t._id} className="flex items-center gap-3 group hover:bg-accent p-3 rounded-lg transition-all border border-transparent hover:border-border">
-                    {t.status === "done" ? <CheckCircle2 className="h-5 w-5 text-green-500 flex-shrink-0" /> : <Circle className="h-5 w-5 text-muted-foreground flex-shrink-0" />}
-                    <span className={`text-sm flex-1 ${t.status === "done" ? "line-through text-muted-foreground" : ""}`}>{t.title}</span>
-                  </li>
-                ))
-              )}
-            </ul>
-          </Card>
-
-          {overdue.length > 0 && (
-            <Card className="p-6 border-red-500/20 bg-red-500/5">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2">
-                  <Clock className="h-5 w-5 text-red-500" />
-                  <h2 className="text-lg font-semibold">Overdue Tasks</h2>
-                </div>
-                <Link href="/projects">
-                  <Button size="sm" variant="ghost" className="gap-1">
-                    View all
-                    <ArrowRight className="h-3 w-3" />
-                  </Button>
+            
+            {tasks.length === 0 ? (
+              <div className="text-center py-12 border-2 border-dashed rounded-lg">
+                <CheckCircle2 className="h-12 w-12 text-muted-foreground/50 mx-auto mb-3" />
+                <p className="text-sm text-muted-foreground mb-3">No tasks for today</p>
+                <Link href="/daily">
+                  <Button size="sm" variant="outline">Add Task</Button>
                 </Link>
               </div>
-              <ul className="space-y-2">
+            ) : (
+              <div className="space-y-2">
+                {tasks.map((t: any) => (
+                  <div key={t._id} className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent transition-colors group">
+                    <button
+                      onClick={() => handleToggleTask(t)}
+                      className="flex-shrink-0 hover:scale-110 transition-transform"
+                    >
+                      {t.status === "done" ? (
+                        <CheckCircle2 className="h-5 w-5 text-green-500" />
+                      ) : (
+                        <Circle className="h-5 w-5 text-muted-foreground group-hover:text-primary" />
+                      )}
+                    </button>
+                    <Link href={`/projects/${t.projectId}`} className="flex-1 min-w-0">
+                      <span className={`text-sm ${t.status === "done" ? "line-through text-muted-foreground" : "group-hover:text-primary transition-colors"}`}>
+                        {t.title}
+                      </span>
+                    </Link>
+                    {t.priority && (
+                      <span className={`text-xs px-2 py-0.5 rounded ${
+                        t.priority === "high" ? "bg-red-500/10 text-red-500" :
+                        t.priority === "medium" ? "bg-yellow-500/10 text-yellow-500" :
+                        "bg-blue-500/10 text-blue-500"
+                      }`}>
+                        {t.priority}
+                      </span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </Card>
+
+          {/* Overdue Section - Only show if there are overdue tasks */}
+          {overdue.length > 0 && (
+            <Card className="p-6 border-red-500/30 bg-red-500/5">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="h-8 w-8 rounded-lg bg-red-500/10 flex items-center justify-center">
+                  <Clock className="h-4 w-4 text-red-500" />
+                </div>
+                <h2 className="text-lg font-bold">Overdue Tasks</h2>
+                <span className="ml-auto text-sm text-red-600 font-medium">{overdue.length} tasks</span>
+              </div>
+              <div className="space-y-2">
                 {overdue.map((t: any) => (
-                  <li key={t._id} className="flex items-center gap-3 hover:bg-accent p-3 rounded-lg transition-colors">
+                  <Link key={t._id} href={`/projects/${t.projectId}`} className="flex items-center gap-3 p-2 rounded-lg hover:bg-red-500/10 transition-colors">
                     <div className="h-2 w-2 rounded-full bg-red-500 flex-shrink-0" />
                     <span className="text-sm flex-1">{t.title}</span>
                     <span className="text-xs text-muted-foreground">{t.endDate}</span>
-                  </li>
+                  </Link>
                 ))}
-              </ul>
+              </div>
             </Card>
           )}
 
-          <Card className="p-6">
+          {/* Active Projects Grid */}
+          <div>
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold">Recent Notes</h2>
-              <Link href="/notes">
-                <Button size="sm" variant="ghost" className="gap-1">
-                  View all
-                  <ArrowRight className="h-3 w-3" />
-                </Button>
-              </Link>
-            </div>
-            <ul className="space-y-2">
-            {notes.length === 0 ? (
-              <li className="text-sm text-muted-foreground py-8 text-center">No notes yet</li>
-            ) : (
-              notes.map((n: any) => (
-                <li key={n._id} className="flex items-start gap-3 hover:bg-accent p-2 rounded-lg transition-colors">
-                  <FileText className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
-                  <div className="flex-1 min-w-0">
-                    <div className="text-sm font-medium truncate">{n.title}</div>
-                    <div className="text-xs text-muted-foreground truncate">{n.content?.replace(/<[^>]*>/g, '').slice(0, 50)}</div>
-                  </div>
-                </li>
-              ))
-            )}
-          </ul>
-        </Card>
-        </div>
-
-        {/* Right Column - Sidebar */}
-        <div className="space-y-6">
-          <WeeklyProgress />
-
-          <Card className="p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold">Active Projects</h2>
+              <h2 className="text-lg font-bold">Active Projects</h2>
               <Link href="/projects">
                 <Button size="sm" variant="ghost" className="gap-1">
                   View all
-                  <ArrowRight className="h-3 w-3" />
+                  <ArrowRight className="h-3.5 w-3.5" />
                 </Button>
               </Link>
             </div>
-            <div className="space-y-2">
-              {recentProjects.length === 0 ? (
-                <div className="text-sm text-muted-foreground py-12 text-center border-2 border-dashed rounded-lg">
-                  <div className="flex flex-col items-center gap-2">
-                    <FileText className="h-8 w-8 text-muted-foreground/50" />
-                    <p>No projects yet</p>
-                    <Link href="/projects/new">
-                      <Button size="sm" variant="outline" className="mt-2 gap-2">
-                        <Plus className="h-4 w-4" />
-                        Create Project
-                      </Button>
-                    </Link>
-                  </div>
-                </div>
-              ) : (
-                recentProjects.map((p: any) => (
+            
+            {recentProjects.length === 0 ? (
+              <Card className="p-12 text-center border-2 border-dashed">
+                <FileText className="h-12 w-12 text-muted-foreground/50 mx-auto mb-3" />
+                <p className="text-sm text-muted-foreground mb-3">No projects yet</p>
+                <Link href="/projects/new">
+                  <Button size="sm" variant="outline" className="gap-2">
+                    <Plus className="h-4 w-4" />
+                    Create Project
+                  </Button>
+                </Link>
+              </Card>
+            ) : (
+              <div className="grid grid-cols-2 gap-3">
+                {recentProjects.map((p: any) => (
                   <Link key={p._id} href={`/projects/${p._id}`}>
-                    <div className="flex items-center gap-3 hover:bg-accent p-3 rounded-lg transition-all border border-transparent hover:border-border cursor-pointer">
-                      <div className={`h-3 w-3 rounded-full ${getProjectColor(p.color)} flex-shrink-0`} />
-                      <div className="flex-1 min-w-0">
-                        <div className="text-sm font-medium truncate">{p.name}</div>
-                        {p.description && <div className="text-xs text-muted-foreground truncate">{p.description}</div>}
+                    <Card className="p-4 hover:shadow-md transition-all cursor-pointer group">
+                      <div className="flex items-start gap-3">
+                        <div
+                          className="h-3 w-3 rounded-full flex-shrink-0 mt-1"
+                          style={{ backgroundColor: p.color || '#3B82F6' }}
+                        />
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm font-medium truncate group-hover:text-primary transition-colors">{p.name}</div>
+                          {p.description && (
+                            <div className="text-xs text-muted-foreground truncate mt-0.5">{p.description}</div>
+                          )}
+                        </div>
                       </div>
-                    </div>
+                    </Card>
                   </Link>
-                ))
-              )}
-            </div>
-          </Card>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
 
+        {/* Right Column - Secondary Info */}
+        <div className="space-y-6">
+          {/* Weekly Progress */}
+          <WeeklyProgress data={weeklyProgressData} />
+
+          {/* Quick Actions */}
           <Card className="p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold">Upcoming Tasks</h2>
-              <Link href="/daily">
-                <Button size="sm" variant="ghost" className="gap-1">
-                  View all
-                  <ArrowRight className="h-3 w-3" />
+            <h2 className="text-lg font-bold mb-4">Quick Actions</h2>
+            <div className="space-y-2">
+              <Link href="/projects/new">
+                <Button variant="outline" className="w-full justify-start gap-2">
+                  <Plus className="h-4 w-4" />
+                  New Project
+                </Button>
+              </Link>
+              <Link href="/notes">
+                <Button variant="outline" className="w-full justify-start gap-2">
+                  <FileText className="h-4 w-4" />
+                  New Note
+                </Button>
+              </Link>
+              <Link href="/calendar">
+                <Button variant="outline" className="w-full justify-start gap-2">
+                  <CalendarIcon className="h-4 w-4" />
+                  Calendar
                 </Button>
               </Link>
             </div>
-            <ul className="space-y-2">
-              {upcomingTasks.length === 0 ? (
-                <li className="text-sm text-muted-foreground py-8 text-center">No upcoming tasks</li>
-              ) : (
-                upcomingTasks.map((t: any) => (
-                  <li key={t._id} className="flex items-center gap-3 hover:bg-accent p-3 rounded-lg transition-all border border-transparent hover:border-border">
-                    <Circle className="h-5 w-5 text-muted-foreground flex-shrink-0" />
-                    <span className="text-sm flex-1">{t.title}</span>
-                    {t.endDate && <span className="text-xs text-muted-foreground">{format(new Date(t.endDate), "MMM d")}</span>}
-                  </li>
-                ))
-              )}
-            </ul>
           </Card>
         </div>
       </div>
     </div>
-    </>
   )
-}
-
-function StatCard({ label, value, icon, trend, color }: { label: string; value: string | number; icon: React.ReactNode; trend: string; color: string }) {
-  const colorClasses: Record<string, string> = {
-    blue: "bg-blue-500/10 text-blue-500",
-    red: "bg-red-500/10 text-red-500",
-    green: "bg-green-500/10 text-green-500",
-    orange: "bg-orange-500/10 text-orange-500",
-    purple: "bg-purple-500/10 text-purple-500",
-  }
-
-  return (
-    <Card className="p-4">
-      <div className="flex items-center justify-between">
-        <div className="space-y-1">
-          <p className="text-xs font-medium text-muted-foreground">{label}</p>
-          <p className="text-2xl font-bold">{value}</p>
-          <p className="text-xs text-muted-foreground">{trend}</p>
-        </div>
-        <div className={`h-10 w-10 rounded-full flex items-center justify-center ${colorClasses[color]}`}>
-          {icon}
-        </div>
-      </div>
-    </Card>
-  )
-}
-
-function getProjectColor(color?: string) {
-  const colors: Record<string, string> = {
-    blue: "bg-blue-500",
-    green: "bg-green-500",
-    purple: "bg-purple-500",
-    orange: "bg-orange-500",
-    pink: "bg-pink-500",
-    red: "bg-red-500",
-  }
-  return colors[color || "blue"]
 }

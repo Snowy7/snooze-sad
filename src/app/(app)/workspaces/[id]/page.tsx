@@ -56,70 +56,92 @@ export default function WorkspaceDashboardPage() {
       <div className="space-y-2">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+            <h1 className="text-4xl font-bold text-gradient">
               {workspace.name}
             </h1>
             {workspace.description && (
-              <p className="text-muted-foreground mt-1">{workspace.description}</p>
+              <p className="text-muted-foreground mt-2 text-base">{workspace.description}</p>
             )}
           </div>
           <Link href={`/workspaces/${workspaceId}/settings`}>
-            <Button variant="outline">
+            <Button variant="outline" className="gap-2">
               Workspace Settings
-              <ArrowRight className="ml-2 h-4 w-4" />
+              <ArrowRight className="h-4 w-4" />
             </Button>
           </Link>
         </div>
       </div>
 
-      {/* Stats Grid */}
+      {/* Stats Grid with enhanced metrics */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="p-6 hover:shadow-lg transition-shadow">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-muted-foreground">Total Projects</p>
+        <Card className="p-6 card-elevated-hover">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex-1">
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Total Projects</p>
               <p className="text-3xl font-bold mt-2">{totalProjects}</p>
             </div>
-            <div className="h-12 w-12 rounded-full bg-blue-500/10 flex items-center justify-center">
+            <div className="h-12 w-12 rounded-full bg-blue-500/10 flex items-center justify-center group-hover:bg-blue-500/20 transition-all">
               <FolderKanban className="h-6 w-6 text-blue-500" />
             </div>
           </div>
+          <div className="h-1.5 rounded-full bg-muted overflow-hidden mb-2">
+            <div 
+              className="h-full bg-blue-500 rounded-full transition-all duration-500"
+              style={{ width: totalProjects > 0 ? '100%' : '0%' }}
+            />
+          </div>
+          <p className="text-xs text-muted-foreground">Across workspace</p>
         </Card>
 
-        <Card className="p-6 hover:shadow-lg transition-shadow">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-muted-foreground">Active Projects</p>
+        <Card className="p-6 hover:shadow-lg transition-all group hover:-translate-y-1">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex-1">
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Active Projects</p>
               <p className="text-3xl font-bold mt-2">{activeProjects}</p>
             </div>
-            <div className="h-12 w-12 rounded-full bg-green-500/10 flex items-center justify-center">
+            <div className="h-12 w-12 rounded-full bg-green-500/10 flex items-center justify-center group-hover:bg-green-500/20 transition-all">
               <Clock className="h-6 w-6 text-green-500" />
             </div>
           </div>
+          <div className="h-1.5 rounded-full bg-muted overflow-hidden mb-2">
+            <div 
+              className="h-full bg-green-500 rounded-full transition-all duration-500"
+              style={{ width: totalProjects > 0 ? `${(activeProjects / totalProjects) * 100}%` : '0%' }}
+            />
+          </div>
+          <p className="text-xs text-muted-foreground">{totalProjects > 0 ? Math.round((activeProjects / totalProjects) * 100) : 0}% of total</p>
         </Card>
 
-        <Card className="p-6 hover:shadow-lg transition-shadow">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-muted-foreground">Completed</p>
+        <Card className="p-6 hover:shadow-lg transition-all group hover:-translate-y-1">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex-1">
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Completed</p>
               <p className="text-3xl font-bold mt-2">{completedProjects}</p>
             </div>
-            <div className="h-12 w-12 rounded-full bg-purple-500/10 flex items-center justify-center">
+            <div className="h-12 w-12 rounded-full bg-purple-500/10 flex items-center justify-center group-hover:bg-purple-500/20 transition-all">
               <CheckCircle2 className="h-6 w-6 text-purple-500" />
             </div>
           </div>
+          <div className="h-1.5 rounded-full bg-muted overflow-hidden mb-2">
+            <div 
+              className="h-full bg-purple-500 rounded-full transition-all duration-500"
+              style={{ width: totalProjects > 0 ? `${(completedProjects / totalProjects) * 100}%` : '0%' }}
+            />
+          </div>
+          <p className="text-xs text-muted-foreground">{totalProjects > 0 ? Math.round((completedProjects / totalProjects) * 100) : 0}% completion</p>
         </Card>
 
-        <Card className="p-6 hover:shadow-lg transition-shadow">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-muted-foreground">Team Members</p>
+        <Card className="p-6 hover:shadow-lg transition-all group hover:-translate-y-1">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex-1">
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Team Members</p>
               <p className="text-3xl font-bold mt-2">{members?.length || 0}</p>
             </div>
-            <div className="h-12 w-12 rounded-full bg-orange-500/10 flex items-center justify-center">
+            <div className="h-12 w-12 rounded-full bg-orange-500/10 flex items-center justify-center group-hover:bg-orange-500/20 transition-all">
               <Users className="h-6 w-6 text-orange-500" />
             </div>
           </div>
+          <p className="text-xs text-muted-foreground mt-4">Active collaborators</p>
         </Card>
       </div>
 
@@ -225,7 +247,7 @@ export default function WorkspaceDashboardPage() {
                   key={member._id}
                   className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent transition-colors"
                 >
-                  <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-semibold">
+                  <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center font-semibold">
                     {member.user?.fullName?.[0]?.toUpperCase() || member.user?.email?.[0]?.toUpperCase() || "U"}
                   </div>
                   <div className="flex-1 overflow-hidden">

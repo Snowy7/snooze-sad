@@ -6,6 +6,7 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-content-area: var(--content-area);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
   --color-sidebar-ring: var(--sidebar-ring);
@@ -44,71 +45,73 @@
 }
 
 :root {
-  --radius: 0.625rem;
-  --background: oklch(0.99 0 0);
-  --foreground: oklch(0.145 0 0);
+  --radius: 0.75rem;
+  --background: oklch(0.93 0 0);
+  --foreground: oklch(0.18 0 0);
+  --content-area: oklch(0.96 0 0);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
+  --card-foreground: oklch(0.18 0 0);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
+  --popover-foreground: oklch(0.18 0 0);
   --primary: oklch(0.488 0.243 264.376);
   --primary-foreground: oklch(0.985 0 0);
   --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
+  --secondary-foreground: oklch(0.22 0 0);
+  --muted: oklch(0.965 0 0);
+  --muted-foreground: oklch(0.45 0 0);
   --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
+  --accent-foreground: oklch(0.22 0 0);
   --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
+  --border: oklch(0.88 0 0);
+  --input: oklch(0.94 0 0);
   --ring: oklch(0.488 0.243 264.376);
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
   --chart-4: oklch(0.828 0.189 84.429);
   --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(1 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar: oklch(0.96 0 0);
+  --sidebar-foreground: oklch(0.20 0 0);
   --sidebar-primary: oklch(0.488 0.243 264.376);
   --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-accent: oklch(0.92 0 0);
+  --sidebar-accent-foreground: oklch(0.22 0 0);
+  --sidebar-border: oklch(0.88 0 0);
   --sidebar-ring: oklch(0.488 0.243 264.376);
 }
 
 .dark {
-  --background: oklch(0.12 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.19 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.19 0 0);
-  --popover-foreground: oklch(0.985 0 0);
+  --background: oklch(0.11 0 0);
+  --foreground: oklch(0.92 0 0);
+  --content-area: oklch(0.14 0 0);
+  --card: oklch(0.17 0 0);
+  --card-foreground: oklch(0.92 0 0);
+  --popover: oklch(0.17 0 0);
+  --popover-foreground: oklch(0.92 0 0);
   --primary: oklch(0.588 0.243 264.376);
   --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.24 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.24 0 0);
-  --muted-foreground: oklch(0.65 0 0);
-  --accent: oklch(0.24 0 0);
-  --accent-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.20 0 0);
+  --secondary-foreground: oklch(0.92 0 0);
+  --muted: oklch(0.20 0 0);
+  --muted-foreground: oklch(0.58 0 0);
+  --accent: oklch(0.20 0 0);
+  --accent-foreground: oklch(0.92 0 0);
   --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(0.3 0 0);
-  --input: oklch(0.3 0 0);
+  --border: oklch(0.24 0 0);
+  --input: oklch(0.22 0 0);
   --ring: oklch(0.588 0.243 264.376);
   --chart-1: oklch(0.488 0.243 264.376);
   --chart-2: oklch(0.696 0.17 162.48);
   --chart-3: oklch(0.769 0.188 70.08);
   --chart-4: oklch(0.627 0.265 303.9);
   --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.16 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar: oklch(0.11 0 0);
+  --sidebar-foreground: oklch(0.85 0 0);
   --sidebar-primary: oklch(0.588 0.243 264.376);
   --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.24 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(0.3 0 0);
+  --sidebar-accent: oklch(0.18 0 0);
+  --sidebar-accent-foreground: oklch(0.92 0 0);
+  --sidebar-border: oklch(0.24 0 0);
   --sidebar-ring: oklch(0.588 0.243 264.376);
 }
 
@@ -167,22 +170,58 @@
     @apply my-1;
   }
   .prose blockquote {
-    @apply border-l-4 border-border pl-4 italic my-4;
+    @apply border-l-4 pl-4 my-4 text-muted-foreground;
+    border-color: color-mix(in oklch, var(--primary) 50%, transparent);
   }
   .prose code {
-    @apply bg-muted px-1.5 py-0.5 rounded text-sm font-mono;
+    @apply bg-muted px-1.5 py-0.5 rounded text-sm font-mono text-primary;
   }
   .prose pre {
-    @apply bg-muted p-4 rounded my-4 overflow-x-auto;
+    @apply bg-muted p-4 rounded my-4 overflow-x-auto border border-border;
   }
   .prose pre code {
-    @apply bg-transparent p-0;
+    @apply bg-transparent p-0 text-foreground;
   }
   .prose a {
-    @apply text-blue-500 underline;
+    @apply text-primary underline;
+    transition: opacity 0.2s;
+  }
+  .prose a:hover {
+    opacity: 0.8;
   }
   .prose img {
     @apply rounded-lg my-4;
+  }
+  .prose hr {
+    @apply my-8 border-t-2 border-border;
+  }
+  
+  /* Table styles */
+  .prose table {
+    @apply w-full my-4 border-collapse;
+  }
+  .prose table th {
+    @apply bg-muted border border-border p-2 text-left font-semibold;
+  }
+  .prose table td {
+    @apply border border-border p-2;
+  }
+  .prose table tr:hover {
+    background-color: color-mix(in oklch, var(--muted) 50%, transparent);
+  }
+  
+  /* Task list styles */
+  .prose ul[data-type="taskList"] {
+    @apply list-none pl-0;
+  }
+  .prose ul[data-type="taskList"] li {
+    @apply flex items-start gap-2;
+  }
+  .prose ul[data-type="taskList"] li > label {
+    @apply flex items-center gap-2 cursor-pointer;
+  }
+  .prose ul[data-type="taskList"] li > label > input[type="checkbox"] {
+    @apply cursor-pointer;
   }
   
   /* Label spacing */
@@ -334,3 +373,546 @@
 .accent-border { border-color: rgb(var(--accent-500)); }
 .hover\:accent-bg:hover { background-color: rgb(var(--accent-600)); }
 .hover\:accent-bg-light:hover { background-color: rgb(var(--accent-100)); }
+
+/* Enhanced background and effect utilities */
+.bg-grid {
+  background-image: 
+    linear-gradient(to right, color-mix(in oklab, var(--border) 30%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in oklab, var(--border) 30%, transparent) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+.bg-grid-sm {
+  background-image: 
+    linear-gradient(to right, color-mix(in oklab, var(--border) 40%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in oklab, var(--border) 40%, transparent) 1px, transparent 1px);
+  background-size: 16px 16px;
+}
+
+.radial-spot {
+  background: radial-gradient(1000px circle at var(--spot-x, 50%) var(--spot-y, 20%), 
+    color-mix(in oklab, var(--primary) 8%, transparent) 0, 
+    transparent 70%);
+}
+
+.glow-ring {
+  box-shadow: 
+    0 0 0 1px color-mix(in oklab, var(--ring) 20%, transparent),
+    0 0 20px -5px color-mix(in oklab, var(--ring) 40%, transparent);
+}
+
+.glass {
+  background-color: color-mix(in oklab, var(--card) 80%, transparent);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+}
+
+.glass-strong {
+  background-color: color-mix(in oklab, var(--card) 95%, transparent);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+}
+
+.border-gradient {
+  border: 1px solid transparent;
+  background-image: 
+    linear-gradient(var(--card), var(--card)),
+    linear-gradient(135deg, 
+      color-mix(in oklab, var(--primary) 30%, transparent), 
+      color-mix(in oklab, var(--ring) 20%, transparent));
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+}
+
+.text-gradient {
+  background: linear-gradient(135deg, var(--foreground), var(--primary));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.shine {
+  position: relative;
+  overflow: hidden;
+}
+
+.shine::after {
+  content: "";
+  position: absolute;
+  inset: -200% -50%;
+  background: linear-gradient(90deg, 
+    transparent, 
+    color-mix(in oklab, var(--ring) 12%, transparent), 
+    transparent);
+  transform: translateX(-60%);
+  animation: shine-move 5s ease-in-out infinite;
+}
+
+@keyframes shine-move {
+  0%, 100% { transform: translateX(-60%); }
+  50% { transform: translateX(60%); }
+}
+
+/* Card shadows and depth */
+.card-elevated {
+  box-shadow: 
+    0 1px 2px 0 rgba(0, 0, 0, 0.05),
+    0 0 0 1px color-mix(in oklab, var(--border) 50%, transparent);
+}
+
+.card-elevated-hover {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card-elevated-hover:hover {
+  box-shadow: 
+    0 4px 12px -2px rgba(0, 0, 0, 0.08),
+    0 0 0 1px color-mix(in oklab, var(--border) 70%, transparent);
+  transform: translateY(-2px);
+}
+
+/* Smooth transitions */
+.transition-smooth {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Badge styles */
+.badge-glow {
+  box-shadow: 0 0 12px -2px currentColor;
+}
+
+/* Notion-style Editor */
+.notion-editor .ProseMirror {
+  outline: none;
+}
+
+/* Block Controls - No more pseudo-elements */
+.ProseMirror > * {
+  position: relative;
+}
+
+.block-controls {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: opacity 0.15s ease;
+}
+
+.block-controls button {
+  transition: all 0.15s ease;
+}
+
+.notion-editor .ProseMirror p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: var(--muted-foreground);
+  pointer-events: none;
+  height: 0;
+}
+
+.notion-editor .ProseMirror h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1.2;
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.notion-editor .ProseMirror h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1.3;
+  margin-top: 1.25rem;
+  margin-bottom: 0.5rem;
+}
+
+.notion-editor .ProseMirror h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  line-height: 1.4;
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.notion-editor .ProseMirror p {
+  margin-top: 0.25rem;
+  margin-bottom: 0.25rem;
+  line-height: 1.6;
+}
+
+.notion-editor .ProseMirror ul,
+.notion-editor .ProseMirror ol {
+  padding-left: 1.5rem;
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.notion-editor .ProseMirror li {
+  margin-top: 0.125rem;
+  margin-bottom: 0.125rem;
+}
+
+.notion-editor .ProseMirror blockquote {
+  border-left: 3px solid var(--primary);
+  padding: 0.5rem 1rem 0.5rem 1.25rem;
+  margin: 1rem 0;
+  background: transparent;
+  border-radius: 0;
+  font-style: normal;
+  color: var(--foreground);
+  position: relative;
+}
+
+.notion-editor .ProseMirror blockquote::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--primary);
+  border-radius: 2px;
+}
+
+.notion-editor .ProseMirror blockquote p {
+  margin: 0.25rem 0;
+}
+
+.notion-editor .ProseMirror code {
+  background: color-mix(in oklch, var(--primary) 10%, transparent);
+  color: var(--primary);
+  padding: 0.2rem 0.4rem;
+  border-radius: 0.375rem;
+  font-size: 0.9em;
+  font-family: var(--font-mono);
+  border: none;
+  font-weight: 500;
+}
+
+.notion-editor .ProseMirror pre {
+  background: var(--muted);
+  padding: 1rem;
+  border-radius: 0.5rem;
+  margin: 1rem 0;
+  overflow-x: auto;
+  border: 1px solid var(--border);
+}
+
+.notion-editor .ProseMirror pre code {
+  background: none;
+  color: var(--foreground);
+  padding: 0;
+  font-size: 0.875rem;
+  border: none;
+  font-weight: 400;
+}
+
+/* Drop cursor styling */
+.ProseMirror-dropcursor {
+  position: absolute;
+  pointer-events: none;
+  border-left: 3px solid var(--primary) !important;
+  border-radius: 1px;
+  margin-left: -1.5px;
+  height: 1.2em;
+  animation: blink 1s ease-in-out infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.notion-editor .ProseMirror hr {
+  border: none;
+  border-top: 2px solid var(--border);
+  margin: 2rem 0;
+}
+
+/* Task List Styles */
+.notion-editor .ProseMirror ul[data-type="taskList"] {
+  list-style: none;
+  padding-left: 0;
+}
+
+.notion-editor .ProseMirror ul[data-type="taskList"] li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.notion-editor .ProseMirror ul[data-type="taskList"] li > label {
+  flex-shrink: 0;
+  margin-top: 0.125rem;
+}
+
+.notion-editor .ProseMirror ul[data-type="taskList"] li > label input[type="checkbox"] {
+  width: 1.125rem;
+  height: 1.125rem;
+  cursor: pointer;
+  border-radius: 0.25rem;
+  border: 2px solid var(--border);
+  appearance: none;
+  background-color: var(--background);
+  transition: all 0.2s;
+}
+
+.notion-editor .ProseMirror ul[data-type="taskList"] li > label input[type="checkbox"]:checked {
+  background-color: var(--primary);
+  border-color: var(--primary);
+  background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z'/%3e%3c/svg%3e");
+}
+
+.notion-editor .ProseMirror ul[data-type="taskList"] li > div {
+  flex: 1;
+}
+
+.notion-editor .ProseMirror ul[data-type="taskList"] li[data-checked="true"] > div {
+  text-decoration: line-through;
+  opacity: 0.6;
+}
+
+/* Table Styles */
+.notion-editor .ProseMirror table {
+  border-collapse: collapse;
+  table-layout: fixed;
+  width: 100%;
+  margin: 1.5rem 0;
+  overflow: hidden;
+  border-radius: 0.5rem;
+  border: 1px solid var(--border);
+}
+
+.notion-editor .ProseMirror table td,
+.notion-editor .ProseMirror table th {
+  min-width: 1em;
+  border: 1px solid var(--border);
+  padding: 0.5rem 0.75rem;
+  vertical-align: top;
+  box-sizing: border-box;
+  position: relative;
+}
+
+.notion-editor .ProseMirror table th {
+  font-weight: 600;
+  text-align: left;
+  background-color: color-mix(in oklch, var(--muted) 50%, transparent);
+}
+
+  .notion-editor .ProseMirror table .selectedCell {
+    background-color: color-mix(in oklch, var(--primary) 10%, transparent);
+  }
+  
+  /* Table node selection */
+  .ProseMirror .selectedNode {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+  }
+  
+  .notion-editor .ProseMirror table.selectedNode {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+  }
+
+.notion-editor .ProseMirror table .column-resize-handle {
+  position: absolute;
+  right: -2px;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background-color: var(--primary);
+  pointer-events: none;
+}
+
+/* Ensure minimum height and always show space at bottom */
+.notion-editor .ProseMirror {
+  min-height: calc(100vh - 16rem);
+  padding-bottom: 20vh;
+}
+
+.notion-editor .ProseMirror > *:last-child {
+  margin-bottom: 0;
+}
+
+/* Gantt Chart Styles */
+.gantt-container {
+  font-family: var(--font-sans);
+  background-color: var(--card) !important;
+  height: 100%;
+  min-height: 600px;
+}
+
+.gantt-container * {
+  background-color: inherit;
+}
+
+/* Force Gantt chart to fill full height */
+.gantt-container > div {
+  height: 100% !important;
+  min-height: 600px !important;
+}
+
+.gantt-container .gantt-vertical-container {
+  height: 100% !important;
+  min-height: 600px !important;
+}
+
+.gantt-container .gantt-table {
+  background-color: var(--card);
+  border-right: 0.5px solid color-mix(in oklch, var(--border) 50%, transparent);
+}
+
+.gantt-container .gantt-table-header {
+  background-color: var(--muted);
+  border-bottom: 0.5px solid color-mix(in oklch, var(--border) 60%, transparent);
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+/* Remove white borders from calendar header - softer lines */
+._35nLX {
+  stroke: color-mix(in oklch, var(--border) 40%, transparent) !important;
+  stroke-width: 0.5;
+}
+
+._2dZTyk, ._3rUKi, ._RuwuK {
+  fill: var(--card);
+  stroke: var(--border) !important;
+  stroke-width: 0.5;
+}
+
+.gantt-container .gantt-table-row {
+  border-bottom: 0.5px solid color-mix(in oklch, var(--border) 30%, transparent);
+  background-color: var(--card);
+}
+
+.gantt-container .gantt-table-row:hover {
+  background-color: color-mix(in oklch, var(--accent) 50%, transparent);
+}
+
+.gantt-container .gantt-vertical-container {
+  background-color: var(--card);
+}
+
+.gantt-container ._3rUKi {
+  background-color: var(--card);
+  border-bottom: 1px solid var(--border);
+}
+
+.gantt-container ._2dZTyk {
+  background-color: var(--muted);
+  border-bottom: 0.5px solid var(--border);
+  color: var(--foreground);
+  font-weight: 600;
+}
+
+
+.gantt-container ._2q1Kt {
+  fill: var(--foreground);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.gantt-container ._9w8d5 {
+  fill: var(--muted-foreground);
+  font-size: 11px;
+}
+
+/* Calendar grid background */
+.gantt-container svg {
+  background-color: var(--card) !important;
+}
+
+/* Force all backgrounds to use card color */
+.gantt-container > div {
+  background-color: var(--card) !important;
+}
+
+.gantt-container .gantt-vertical-container > div {
+  background-color: var(--card) !important;
+}
+
+/* Calendar grid cells - force all white backgrounds to card color */
+.gantt-container rect[fill="white"],
+.gantt-container rect[fill="#fff"],
+.gantt-container rect[fill="#ffffff"],
+.gantt-container rect[fill="rgb(255, 255, 255)"],
+.gantt-container rect[fill="rgba(255, 255, 255, 1)"] {
+  fill: var(--card) !important;
+}
+
+/* Force calendar background */
+.gantt-container ._1rMKS,
+.gantt-container .calendar-row rect {
+  fill: var(--card) !important;
+}
+
+/* Override any white backgrounds in SVG */
+.gantt-container svg rect:not([fill*="rgb"]):not([fill*="#"]):not([class*="bar"]) {
+  fill: var(--card) !important;
+}
+
+/* Task bar styles */
+.gantt-container ._3uo7R {
+  rx: 6;
+  ry: 6;
+}
+
+/* Today marker */
+.gantt-container ._2Pjvg {
+  fill: var(--primary);
+  opacity: 0.15;
+}
+
+/* Grid lines - softer appearance */
+.gantt-container ._1b4dS {
+  stroke: color-mix(in oklch, var(--border) 30%, transparent);
+  stroke-width: 0.5;
+}
+
+/* Row backgrounds */
+.gantt-container .gantt-task-row {
+  background-color: var(--card);
+}
+
+/* Calendar header cells */
+.gantt-container .calendar-header {
+  background-color: var(--muted);
+}
+
+/* Scrollbar styling */
+.gantt-container ::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+.gantt-container ::-webkit-scrollbar-track {
+  background: var(--muted);
+  border-radius: 6px;
+}
+
+.gantt-container ::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 6px;
+}
+
+.gantt-container ::-webkit-scrollbar-thumb:hover {
+  background: var(--muted-foreground);
+}
+
+/* Task bar corner radius */
+.gantt-container rect[rx="3"] {
+  rx: 6;
+  ry: 6;
+}
+
+/* Header text */
+.gantt-container text {
+  fill: var(--foreground);
+}
+
+/* Weekend columns */
+.gantt-container .weekend {
+  fill: var(--muted);
+  opacity: 0.3;
+}

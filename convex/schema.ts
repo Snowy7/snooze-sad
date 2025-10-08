@@ -55,14 +55,25 @@ export default defineSchema({
     addedAt: v.number(),
   }).index("by_project", ["projectId"]).index("by_user", ["userId"]).index("by_project_and_user", ["projectId", "userId"]),
 
+  dailyTaskTemplates: defineTable({
+    ownerId: v.string(),
+    title: v.string(),
+    description: v.optional(v.string()),
+    priority: v.optional(v.string()),
+    order: v.optional(v.number()),
+    isActive: v.boolean(), // Can be toggled on/off
+    createdAt: v.number(),
+  }).index("by_owner", ["ownerId"]),
+
   tasks: defineTable({
     projectId: v.optional(v.id("projects")),
     ownerId: v.optional(v.string()),
     title: v.string(),
     description: v.optional(v.string()),
-    status: v.optional(v.string()), // backlog, in_progress, done
-    priority: v.optional(v.string()), // low, medium, high
+    status: v.optional(v.string()), // backlog, in_progress, in_review, stuck, done
+    priority: v.optional(v.string()), // low, medium, high, critical
     assigneeId: v.optional(v.string()),
+    assignees: v.optional(v.array(v.string())), // Multiple assignees
     labels: v.optional(v.array(v.string())),
     tags: v.optional(v.array(v.string())),
     milestoneId: v.optional(v.id("milestones")),
@@ -72,9 +83,28 @@ export default defineSchema({
     endDate: v.optional(v.string()),
     isDaily: v.optional(v.boolean()),
     date: v.optional(v.string()), // for daily tasks
+    templateId: v.optional(v.id("dailyTaskTemplates")), // Link to template if created from one
+    order: v.optional(v.number()),
+    storyPoints: v.optional(v.number()),
+    createdAt: v.number(),
+    updatedAt: v.optional(v.number()),
+  }).index("by_project", ["projectId"]).index("by_date", ["date"]).index("by_owner", ["ownerId"]).index("by_milestone", ["milestoneId"]).index("by_sprint", ["sprintId"]).index("by_template", ["templateId"]),
+  
+  subtasks: defineTable({
+    taskId: v.id("tasks"),
+    title: v.string(),
+    completed: v.boolean(),
     order: v.optional(v.number()),
     createdAt: v.number(),
-  }).index("by_project", ["projectId"]).index("by_date", ["date"]).index("by_owner", ["ownerId"]).index("by_milestone", ["milestoneId"]).index("by_sprint", ["sprintId"]),
+  }).index("by_task", ["taskId"]),
+  
+  comments: defineTable({
+    taskId: v.id("tasks"),
+    userId: v.string(),
+    content: v.string(),
+    createdAt: v.number(),
+    updatedAt: v.optional(v.number()),
+  }).index("by_task", ["taskId"]).index("by_user", ["userId"]),
 
   notes: defineTable({
     title: v.string(),
@@ -174,6 +204,27 @@ export default defineSchema({
     createdAt: v.number(),
     updatedAt: v.number(),
   }).index("by_workspace", ["workspaceId"]).index("by_project", ["projectId"]).index("by_task", ["taskId"]),
+
+  featureRequests: defineTable({
+    title: v.string(),
+    description: v.string(),
+    category: v.string(),
+    status: v.string(), // requested, planned, in_progress, completed, rejected
+    userId: v.optional(v.string()),
+    userEmail: v.optional(v.string()),
+    userName: v.optional(v.string()),
+    upvotes: v.number(),
+    downvotes: v.number(),
+    createdAt: v.number(),
+    updatedAt: v.optional(v.number()),
+  }).index("by_user", ["userId"]).index("by_status", ["status"]),
+
+  featureVotes: defineTable({
+    featureRequestId: v.id("featureRequests"),
+    userId: v.string(),
+    vote: v.union(v.literal("up"), v.literal("down"), v.number()), // Support legacy numeric votes
+    createdAt: v.number(),
+  }).index("by_feature", ["featureRequestId"]).index("by_user", ["userId"]).index("by_feature_and_user", ["featureRequestId", "userId"]),
 });
 
 

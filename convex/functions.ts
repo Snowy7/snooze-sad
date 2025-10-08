@@ -1,3 +1,4 @@
+import { Id } from "./_generated/dataModel";
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 
@@ -16,6 +17,29 @@ export const listDashboard = query({
     ).slice(0, 10);
     const notes = await ctx.db.query("notes").withIndex("by_owner", q => q.eq("ownerId", ownerId)).order("desc").take(5);
     return { projects, tasksToday, overdue, notes };
+  }
+});
+
+export const getWeeklyProgress = query({
+  args: { ownerId: v.string(), dates: v.array(v.string()) },
+  handler: async (ctx, { ownerId, dates }) => {
+    const weeklyData = [];
+    
+    for (const date of dates) {
+      // Get all tasks for this date
+      const allTasksForDate = await ctx.db
+        .query("tasks")
+        .withIndex("by_date", q => q.eq("date", date))
+        .collect();
+      
+      const userTasks = allTasksForDate.filter(t => t.ownerId === ownerId);
+      const completed = userTasks.filter(t => t.status === "done").length;
+      const total = userTasks.length;
+      
+      weeklyData.push({ date, completed, total });
+    }
+    
+    return weeklyData;
   }
 });
 
@@ -49,12 +73,54 @@ export const listProjectBoard = query({
   args: { projectId: v.id("projects") },
   handler: async (ctx, { projectId }) => {
     const tasks = await ctx.db.query("tasks").withIndex("by_project", q => q.eq("projectId", projectId)).collect();
-    const byStatus: Record<string, any[]> = { backlog: [], in_progress: [], done: [] };
-    for (const t of tasks) {
+    
+    // Get all subtasks for these tasks
+    const allSubtasks = await ctx.db.query("subtasks").collect();
+    
+    // Get all comments for count
+    const allComments = await ctx.db.query("comments").collect();
+    
+    // Get all users for assignee info
+    const allUsers = await ctx.db.query("users").collect();
+    
+    // Enrich tasks with subtask info and assignee details
+    const enrichedTasks = tasks.map(task => {
+      const subtasks = allSubtasks.filter(s => s.taskId === task._id);
+      const comments = allComments.filter(c => c.taskId === task._id);
+      
+      // Get assignee user details
+      const assigneeDetails = task.assignees?.map(userId => {
+        const user = allUsers.find(u => u.externalId === userId);
+        return user ? {
+          id: user.externalId,
+          name: user.fullName || user.firstName || user.email,
+          avatar: user.profilePictureUrl || user.avatar,
+        } : null;
+      }).filter(Boolean) || [];
+      
+      return {
+        ...task,
+        subtasksTotal: subtasks.length,
+        subtasksCompleted: subtasks.filter(s => s.completed).length,
+        commentsCount: comments.length,
+        assigneeDetails,
+      };
+    });
+    
+    const byStatus: Record<string, any[]> = { 
+      backlog: [], 
+      in_progress: [], 
+      in_review: [],
+      stuck: [],
+      done: [] 
+    };
+    
+    for (const t of enrichedTasks) {
       const s = (t.status as string) || "backlog";
       if (!byStatus[s]) byStatus[s] = [];
       byStatus[s].push(t);
     }
+    
     Object.keys(byStatus).forEach(k => byStatus[k].sort((a, b) => (a.order ?? 0) - (b.order ?? 0)));
     return byStatus;
   }
@@ -117,13 +183,42 @@ export const getProjectDetails = query({
     const project = await ctx.db.get(projectId);
     if (!project) return null;
     
+    const identity = await ctx.auth.getUserIdentity();
+    const userId = identity ? (identity.subject || identity.tokenIdentifier) : null;
+    
     const tasks = await ctx.db.query("tasks").withIndex("by_project", q => q.eq("projectId", projectId)).collect();
     const notes = await ctx.db.query("notes").withIndex("by_project", q => q.eq("projectId", projectId)).collect();
     const milestones = await ctx.db.query("milestones").withIndex("by_project", q => q.eq("projectId", projectId)).collect();
     const sprints = await ctx.db.query("sprints").withIndex("by_project", q => q.eq("projectId", projectId)).collect();
     
+    // Get user's role in the workspace if project has a workspace
+    let userRole = "owner"; // default for personal projects or project owners
+    
+    // Check if user is the project owner
+    const isProjectOwner = project.ownerId === userId;
+    
+    if (project.workspaceId && !isProjectOwner) {
+      // Only check workspace membership if project has a workspace and user is not the owner
+      if (userId) {
+        const membership = await ctx.db
+          .query("workspaceMembers")
+          .withIndex("by_workspace_and_user", (q) => 
+            q.eq("workspaceId", project.workspaceId as Id<"workspaces">).eq("userId", userId)
+          )
+          .unique();
+        
+        if (membership) {
+          userRole = membership.role;
+        } else {
+          // Not a workspace member and not the owner - return minimal info
+          userRole = "none";
+        }
+      }
+    }
+    
     return {
       project,
+      userRole,
       stats: {
         totalTasks: tasks.length,
         completedTasks: tasks.filter(t => t.status === "done").length,
@@ -260,11 +355,13 @@ export const upsertTask = mutation({
     status: v.optional(v.string()),
     priority: v.optional(v.string()),
     assigneeId: v.optional(v.string()),
+    assignees: v.optional(v.array(v.string())),
     labels: v.optional(v.array(v.string())),
     tags: v.optional(v.array(v.string())),
     milestoneId: v.optional(v.id("milestones")),
     sprintId: v.optional(v.id("sprints")),
     estimatedHours: v.optional(v.number()),
+    storyPoints: v.optional(v.number()),
     startDate: v.optional(v.string()),
     endDate: v.optional(v.string()),
     date: v.optional(v.string()),
@@ -276,7 +373,7 @@ export const upsertTask = mutation({
       const { id, ...rest } = args;
       // Filter out undefined values
       const updates = Object.fromEntries(Object.entries(rest).filter(([_, v]) => v !== undefined));
-      await ctx.db.patch(id, updates);
+      await ctx.db.patch(id, { ...updates, updatedAt: Date.now() });
       return id;
     }
     // For new tasks, title is required
@@ -287,7 +384,7 @@ export const upsertTask = mutation({
       throw new Error("Either ownerId or projectId is required for new tasks");
     }
     
-    return await ctx.db.insert("tasks", { ...args, createdAt: Date.now() } as any);
+    return await ctx.db.insert("tasks", { ...args, createdAt: Date.now(), updatedAt: Date.now() } as any);
   }
 });
 
@@ -327,6 +424,96 @@ export const deleteTask = mutation({
   args: { id: v.id("tasks") },
   handler: async (ctx, { id }) => {
     await ctx.db.delete(id);
+  }
+});
+
+// Daily Task Templates
+export const listDailyTaskTemplates = query({
+  args: { ownerId: v.string() },
+  handler: async (ctx, { ownerId }) => {
+    return await ctx.db
+      .query("dailyTaskTemplates")
+      .withIndex("by_owner", q => q.eq("ownerId", ownerId))
+      .order("asc")
+      .collect();
+  }
+});
+
+export const upsertDailyTaskTemplate = mutation({
+  args: {
+    id: v.optional(v.id("dailyTaskTemplates")),
+    ownerId: v.string(),
+    title: v.string(),
+    description: v.optional(v.string()),
+    priority: v.optional(v.string()),
+    order: v.optional(v.number()),
+    isActive: v.optional(v.boolean()),
+  },
+  handler: async (ctx, args) => {
+    if (args.id) {
+      const { id, ...rest } = args;
+      await ctx.db.patch(id, rest);
+      return id;
+    }
+    return await ctx.db.insert("dailyTaskTemplates", {
+      ...args,
+      isActive: args.isActive ?? true,
+      createdAt: Date.now(),
+    } as any);
+  }
+});
+
+export const deleteDailyTaskTemplate = mutation({
+  args: { id: v.id("dailyTaskTemplates") },
+  handler: async (ctx, { id }) => {
+    await ctx.db.delete(id);
+  }
+});
+
+// Generate daily tasks from templates for a given date
+export const generateDailyTasks = mutation({
+  args: { ownerId: v.string(), date: v.string() },
+  handler: async (ctx, { ownerId, date }) => {
+    // Check if tasks already exist for this date
+    const existingTasks = await ctx.db
+      .query("tasks")
+      .withIndex("by_date", q => q.eq("date", date))
+      .collect();
+    
+    const userExistingTasks = existingTasks.filter(t => 
+      t.ownerId === ownerId && t.isDaily && t.templateId
+    );
+    
+    // Get all active templates
+    const templates = await ctx.db
+      .query("dailyTaskTemplates")
+      .withIndex("by_owner", q => q.eq("ownerId", ownerId))
+      .collect();
+    
+    const activeTemplates = templates.filter(t => t.isActive);
+    
+    // Create tasks for templates that don't have tasks yet
+    const createdTasks = [];
+    for (const template of activeTemplates) {
+      const hasTask = userExistingTasks.some(t => t.templateId === template._id);
+      if (!hasTask) {
+        const taskId = await ctx.db.insert("tasks", {
+          ownerId,
+          title: template.title,
+          description: template.description,
+          priority: template.priority,
+          status: "pending",
+          isDaily: true,
+          date,
+          templateId: template._id,
+          order: template.order,
+          createdAt: Date.now(),
+        });
+        createdTasks.push(taskId);
+      }
+    }
+    
+    return { created: createdTasks.length };
   }
 });
 
@@ -485,19 +672,48 @@ export const getAnalytics = query({
     const projects = await ctx.db.query("projects").withIndex("by_owner", q => q.eq("ownerId", ownerId)).collect();
     const projectIds = projects.map(p => p._id);
     const allTasks = await ctx.db.query("tasks").collect();
-    const tasks = allTasks.filter(t => t.ownerId === ownerId && t.projectId && projectIds.includes(t.projectId));
+    
+    // Include all user tasks (both project tasks and personal tasks)
+    const tasks = allTasks.filter(t => 
+      t.ownerId === ownerId || (t.projectId && projectIds.includes(t.projectId))
+    );
     
     const now = new Date();
     const startDate = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
+    const startDateStr = startDate.toISOString().split('T')[0];
     
-    // Tasks completed per day
+    // Initialize daily completions
     const dailyCompletions: Record<string, number> = {};
-    const doneTasks = tasks.filter(t => t.status === "done");
-    
     for (let i = 0; i < days; i++) {
       const d = new Date(startDate.getTime() + i * 24 * 60 * 60 * 1000);
       const dateStr = d.toISOString().split('T')[0];
       dailyCompletions[dateStr] = 0;
+    }
+    
+    // Count completed tasks per day
+    // For daily tasks, use their date field
+    // For other tasks, count them on the day they were marked as done (using updatedAt if available)
+    const doneTasks = tasks.filter(t => t.status === "done");
+    for (const task of doneTasks) {
+      let dateToCount: string | null = null;
+      
+      if (task.date && task.isDaily) {
+        // Daily task - use the date field
+        dateToCount = task.date;
+      } else if (task.updatedAt) {
+        // Use updatedAt if available (when task was last modified/completed)
+        const updatedDate = new Date(task.updatedAt).toISOString().split('T')[0];
+        if (updatedDate >= startDateStr) {
+          dateToCount = updatedDate;
+        }
+      } else if (task.endDate) {
+        // Fallback to endDate if no updatedAt
+        dateToCount = task.endDate.split('T')[0];
+      }
+      
+      if (dateToCount && dailyCompletions.hasOwnProperty(dateToCount)) {
+        dailyCompletions[dateToCount]++;
+      }
     }
     
     // Time per project
@@ -505,12 +721,16 @@ export const getAnalytics = query({
     projects.forEach(p => timeByProject[p.name] = 0);
     
     const timelogs = await ctx.db.query("timelogs").collect();
-    for (const log of timelogs) {
-      const task = tasks.find(t => t._id === log.taskId);
-      if (task && task.projectId) {
-        const project = projects.find(p => p._id === task.projectId);
-        if (project && log.duration) {
-          timeByProject[project.name] = (timeByProject[project.name] || 0) + log.duration;
+    const userTimelogs = timelogs.filter(log => log.userId === ownerId);
+    
+    for (const log of userTimelogs) {
+      if (log.duration) {
+        const task = allTasks.find(t => t._id === log.taskId);
+        if (task?.projectId) {
+          const project = projects.find(p => p._id === task.projectId);
+          if (project) {
+            timeByProject[project.name] = (timeByProject[project.name] || 0) + log.duration;
+          }
         }
       }
     }
@@ -522,6 +742,147 @@ export const getAnalytics = query({
       timeByProject,
       projects: projects.length
     };
+  }
+});
+
+// Subtasks
+export const listSubtasks = query({
+  args: { taskId: v.id("tasks") },
+  handler: async (ctx, { taskId }) => {
+    const subtasks = await ctx.db
+      .query("subtasks")
+      .withIndex("by_task", q => q.eq("taskId", taskId))
+      .collect();
+    return subtasks.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+  }
+});
+
+export const addSubtask = mutation({
+  args: {
+    taskId: v.id("tasks"),
+    title: v.string(),
+    order: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    return await ctx.db.insert("subtasks", {
+      ...args,
+      completed: false,
+      createdAt: Date.now(),
+    });
+  }
+});
+
+export const toggleSubtask = mutation({
+  args: { id: v.id("subtasks") },
+  handler: async (ctx, { id }) => {
+    const subtask = await ctx.db.get(id);
+    if (!subtask) return;
+    await ctx.db.patch(id, { completed: !subtask.completed });
+  }
+});
+
+export const updateSubtask = mutation({
+  args: {
+    id: v.id("subtasks"),
+    title: v.optional(v.string()),
+    completed: v.optional(v.boolean()),
+    order: v.optional(v.number()),
+  },
+  handler: async (ctx, { id, ...updates }) => {
+    const filteredUpdates = Object.fromEntries(
+      Object.entries(updates).filter(([_, v]) => v !== undefined)
+    );
+    await ctx.db.patch(id, filteredUpdates);
+  }
+});
+
+export const deleteSubtask = mutation({
+  args: { id: v.id("subtasks") },
+  handler: async (ctx, { id }) => {
+    await ctx.db.delete(id);
+  }
+});
+
+// Comments
+export const listComments = query({
+  args: { taskId: v.id("tasks") },
+  handler: async (ctx, { taskId }) => {
+    const comments = await ctx.db
+      .query("comments")
+      .withIndex("by_task", q => q.eq("taskId", taskId))
+      .collect();
+    
+    // Get user info for each comment
+    const users = await ctx.db.query("users").collect();
+    
+    return comments.map(comment => {
+      const user = users.find(u => u.externalId === comment.userId);
+      return {
+        ...comment,
+        user: user ? {
+          name: user.fullName || user.firstName || user.email,
+          avatar: user.profilePictureUrl || user.avatar,
+        } : null
+      };
+    }).sort((a, b) => b.createdAt - a.createdAt);
+  }
+});
+
+export const addComment = mutation({
+  args: {
+    taskId: v.id("tasks"),
+    userId: v.string(),
+    content: v.string(),
+  },
+  handler: async (ctx, args) => {
+    return await ctx.db.insert("comments", {
+      ...args,
+      createdAt: Date.now(),
+    });
+  }
+});
+
+export const updateComment = mutation({
+  args: {
+    id: v.id("comments"),
+    content: v.string(),
+  },
+  handler: async (ctx, { id, content }) => {
+    await ctx.db.patch(id, { content, updatedAt: Date.now() });
+  }
+});
+
+export const deleteComment = mutation({
+  args: { id: v.id("comments") },
+  handler: async (ctx, { id }) => {
+    await ctx.db.delete(id);
+  }
+});
+
+// Get workspace members for assignment
+export const getWorkspaceMembers = query({
+  args: { workspaceId: v.id("workspaces") },
+  handler: async (ctx, { workspaceId }) => {
+    const members = await ctx.db
+      .query("workspaceMembers")
+      .withIndex("by_workspace_id", q => q.eq("workspaceId", workspaceId))
+      .collect();
+    
+    // Get user details for each member
+    const users = await ctx.db.query("users").collect();
+    
+    return members.map(member => {
+      const user = users.find(u => u.externalId === member.userId);
+      return {
+        ...member,
+        user: user ? {
+          id: user.externalId,
+          name: user.fullName || user.firstName || user.email,
+          email: user.email,
+          avatar: user.profilePictureUrl || user.avatar,
+        } : null
+      };
+    }).filter(m => m.user !== null);
   }
 });
 
