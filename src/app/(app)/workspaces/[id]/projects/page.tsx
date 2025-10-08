@@ -9,6 +9,7 @@ import { Plus, FolderKanban, ChevronRight } from "lucide-react"
 import { format } from "date-fns"
 import { useParams, useRouter } from "next/navigation"
 import Link from "next/link"
+import { Id } from "@/../convex/_generated/dataModel"
 
 export default function WorkspaceProjectsPage() {
   const router = useRouter()
@@ -18,7 +19,7 @@ export default function WorkspaceProjectsPage() {
   // Fetch all projects in this workspace that user has access to
   const projects = useQuery(
     api.functions.listProjects,
-    { workspaceId }
+    { workspaceId: workspaceId as Id<"workspaces"> }
   ) || []
 
   const activeProjects = projects.filter((p: any) => p.status !== "archived" && p.status !== "completed")

@@ -19,9 +19,6 @@ const nextConfig: NextConfig = {
   // Enable strict mode for better error catching
   reactStrictMode: true,
   
-  // Optimize production builds
-  swcMinify: true,
-  
   // Security headers for better SEO and security
   async headers() {
     return [
