@@ -1144,19 +1144,25 @@ export default function DocsClient({ sections }: { sections: Record<string, Sect
                         <h2 className="text-2xl font-bold mb-3 group-hover:text-red-600 transition-colors">{entry.title}</h2>
                         <p className="text-muted-foreground leading-7">{entry.body}</p>
                         
-                        {entry.example && ExampleComponents[entry.example] && (
-                          <div className="mt-6">
-                            <div className="flex items-center gap-2 mb-3">
-                              <div className="h-px flex-1 bg-border" />
-                              <span className="text-sm font-medium text-muted-foreground flex items-center gap-1.5">
-                                <CheckCircle className="h-4 w-4 text-red-500" />
-                                Try it yourself
-                              </span>
-                              <div className="h-px flex-1 bg-border" />
-                            </div>
-                            {ExampleComponents[entry.example]}
-                          </div>
-                        )}
+                        {(() => {
+                          if (entry.example && ExampleComponents[entry.example]) {
+                            const ExampleComponent = ExampleComponents[entry.example];
+                            return (
+                              <div className="mt-6">
+                                <div className="flex items-center gap-2 mb-3">
+                                  <div className="h-px flex-1 bg-border" />
+                                  <span className="text-sm font-medium text-muted-foreground flex items-center gap-1.5">
+                                    <CheckCircle className="h-4 w-4 text-red-500" />
+                                    Try it yourself
+                                  </span>
+                                  <div className="h-px flex-1 bg-border" />
+                                </div>
+                                <ExampleComponent />
+                              </div>
+                            );
+                          }
+                          return null;
+                        })()}
                       </div>
                     </div>
                   </div>

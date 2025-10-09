@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link";
-import { useAuth } from "@workos-inc/authkit-nextjs";
+import { useAuth } from "@workos-inc/authkit-nextjs/components";
 import { ArrowRight } from "lucide-react";
 
 export function HeroButtons() {
