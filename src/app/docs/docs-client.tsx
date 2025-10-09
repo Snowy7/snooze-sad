@@ -1,8 +1,8 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import dynamic from 'next/dynamic'
 import { MarketingNavbar } from "@/components/marketing/navbar"
-import { AnimatedGrid } from "@/components/animated-grid"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
@@ -26,7 +26,7 @@ import { toast } from "sonner"
 
 type Section = { title: string; body: string; example?: string }
 
-function InteractiveDailyTasks() {
+const InteractiveDailyTasks = dynamic(() => Promise.resolve(function InteractiveDailyTasks() {
   const [tasks, setTasks] = useState([
     { id: '1', title: 'Morning workout', completed: false, isTemplate: true },
     { id: '2', title: 'Check emails', completed: true, isTemplate: true },
@@ -184,9 +184,9 @@ function InteractiveDailyTasks() {
       )}
     </div>
   )
-}
+}), { ssr: false });
 
-function SortableTaskCard({ id, task }: { id: string; task: string }) {
+const SortableTaskCard = dynamic(() => Promise.resolve(function SortableTaskCard({ id, task }: { id: string; task: string }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id })
   
   const style = {
@@ -207,9 +207,9 @@ function SortableTaskCard({ id, task }: { id: string; task: string }) {
       <span>{task}</span>
     </div>
   )
-}
+}), { ssr: false });
 
-function InteractiveKanban() {
+const InteractiveKanban = dynamic(() => Promise.resolve(function InteractiveKanban() {
   const [tasks, setTasks] = useState({
     backlog: [
       { id: 'b1', text: 'Design mockups' },
@@ -336,9 +336,9 @@ function InteractiveKanban() {
       </div>
     </div>
   )
-}
+}), { ssr: false });
 
-function InteractiveEditor() {
+const InteractiveEditor = dynamic(() => Promise.resolve(function InteractiveEditor() {
   const [showSlashHint, setShowSlashHint] = useState(false)
   
   const editor = useEditor({
@@ -421,9 +421,9 @@ function InteractiveEditor() {
       </div>
     </div>
   )
-}
+}), { ssr: false });
 
-function InteractiveFocusTimer() {
+const InteractiveFocusTimer = dynamic(() => Promise.resolve(function InteractiveFocusTimer() {
   const [seconds, setSeconds] = useState(25 * 60)
   const [isRunning, setIsRunning] = useState(false)
   const [isFocusMode, setIsFocusMode] = useState(false)
@@ -517,9 +517,9 @@ function InteractiveFocusTimer() {
       </div>
     </div>
   )
-}
+}), { ssr: false });
 
-function InteractiveGantt() {
+const InteractiveGantt = dynamic(() => Promise.resolve(function InteractiveGantt() {
   const tasks = [
     { name: 'Design phase', start: 10, duration: 30, color: 'bg-red-500' },
     { name: 'Development', start: 35, duration: 40, color: 'bg-purple-500' },
@@ -576,9 +576,9 @@ function InteractiveGantt() {
       </div>
     </div>
   )
-}
+}), { ssr: false });
 
-function InteractiveCommandPalette() {
+const InteractiveCommandPalette = dynamic(() => Promise.resolve(function InteractiveCommandPalette() {
   const [search, setSearch] = useState('')
   const commands = [
     { icon: Calendar, label: 'Go to Calendar', shortcut: '' },
@@ -612,9 +612,9 @@ function InteractiveCommandPalette() {
       </div>
     </div>
   )
-}
+}), { ssr: false });
 
-function InteractiveCalendar() {
+const InteractiveCalendar = dynamic(() => Promise.resolve(function InteractiveCalendar() {
   const [selected, setSelected] = useState(5)
   
   return (
@@ -641,9 +641,9 @@ function InteractiveCalendar() {
       </div>
     </div>
   )
-}
+}), { ssr: false });
 
-function KeyboardShortcuts() {
+const KeyboardShortcuts = dynamic(() => Promise.resolve(function KeyboardShortcuts() {
   const shortcuts = [
     { keys: ['⌘', 'K'], label: 'Command palette', category: 'Navigation' },
     { keys: ['⌘', 'P'], label: 'Quick search', category: 'Navigation' },
@@ -696,9 +696,9 @@ function KeyboardShortcuts() {
       ))}
     </div>
   )
-}
+}), { ssr: false });
 
-function InteractiveNotesIntro() {
+const InteractiveNotesIntro = dynamic(() => Promise.resolve(function InteractiveNotesIntro() {
   const [notes, setNotes] = useState([
     { id: '1', title: 'Welcome to Notes', updatedAt: new Date() },
     { id: '2', title: 'Meeting Notes', updatedAt: new Date(Date.now() - 86400000) },
@@ -773,9 +773,9 @@ function InteractiveNotesIntro() {
       </div>
     </div>
   )
-}
+}), { ssr: false });
 
-function InteractiveBlocks() {
+const InteractiveBlocks = dynamic(() => Promise.resolve(function InteractiveBlocks() {
   return (
     <div className="rounded-lg border bg-background p-6 space-y-3">
       <div className="group relative pl-12">
@@ -807,9 +807,9 @@ function InteractiveBlocks() {
       </div>
     </div>
   )
-}
+}), { ssr: false });
 
-function InteractiveSlashMenu() {
+const InteractiveSlashMenu = dynamic(() => Promise.resolve(function InteractiveSlashMenu() {
   const [showMenu, setShowMenu] = useState(false)
   const [input, setInput] = useState('')
   
@@ -879,9 +879,9 @@ function InteractiveSlashMenu() {
       </div>
     </div>
   )
-}
+}), { ssr: false });
 
-function InteractiveFormatting() {
+const InteractiveFormatting = dynamic(() => Promise.resolve(function InteractiveFormatting() {
   const [showToolbar, setShowToolbar] = useState(false)
   
   const editor = useEditor({
@@ -929,9 +929,9 @@ function InteractiveFormatting() {
       </div>
     </div>
   )
-}
+}), { ssr: false });
 
-function InteractiveAdvancedBlocks() {
+const InteractiveAdvancedBlocks = dynamic(() => Promise.resolve(function InteractiveAdvancedBlocks() {
   const editor = useEditor({
     immediatelyRender: false,
     extensions: [
@@ -977,9 +977,9 @@ function InteractiveAdvancedBlocks() {
       </div>
     </div>
   )
-}
+}), { ssr: false });
 
-function InteractiveAutoSave() {
+const InteractiveAutoSave = dynamic(() => Promise.resolve(function InteractiveAutoSave() {
   const [status, setStatus] = useState<'saved' | 'unsaved' | 'saving'>('saved')
   const [text, setText] = useState('Start typing to see auto-save in action...')
   
@@ -1028,9 +1028,9 @@ function InteractiveAutoSave() {
       </div>
     </div>
   )
-}
+}), { ssr: false });
 
-function InteractiveKeyboard() {
+const InteractiveKeyboard = dynamic(() => Promise.resolve(function InteractiveKeyboard() {
   const shortcuts = [
     { keys: ['/'], label: 'Open slash menu' },
     { keys: ['⌘', 'B'], label: 'Bold' },
@@ -1063,24 +1063,24 @@ function InteractiveKeyboard() {
       ))}
     </div>
   )
-}
+}), { ssr: false });
 
-const ExampleComponents: Record<string, React.ReactNode> = {
-  task: <InteractiveDailyTasks />,
-  kanban: <InteractiveKanban />,
-  editor: <InteractiveEditor />,
-  'notes-intro': <InteractiveNotesIntro />,
-  blocks: <InteractiveBlocks />,
-  'slash-menu': <InteractiveSlashMenu />,
-  formatting: <InteractiveFormatting />,
-  'advanced-blocks': <InteractiveAdvancedBlocks />,
-  autosave: <InteractiveAutoSave />,
-  keyboard: <InteractiveKeyboard />,
-  focus: <InteractiveFocusTimer />,
-  gantt: <InteractiveGantt />,
-  command: <InteractiveCommandPalette />,
-  calendar: <InteractiveCalendar />,
-  shortcuts: <KeyboardShortcuts />,
+const ExampleComponents: Record<string, React.ComponentType> = {
+  task: InteractiveDailyTasks,
+  kanban: InteractiveKanban,
+  editor: InteractiveEditor,
+  'notes-intro': InteractiveNotesIntro,
+  blocks: InteractiveBlocks,
+  'slash-menu': InteractiveSlashMenu,
+  formatting: InteractiveFormatting,
+  'advanced-blocks': InteractiveAdvancedBlocks,
+  autosave: InteractiveAutoSave,
+  keyboard: InteractiveKeyboard,
+  focus: InteractiveFocusTimer,
+  gantt: InteractiveGantt,
+  command: InteractiveCommandPalette,
+  calendar: InteractiveCalendar,
+  shortcuts: KeyboardShortcuts,
 }
 
 export default function DocsClient({ sections }: { sections: Record<string, Section[]> }) {
@@ -1093,7 +1093,7 @@ export default function DocsClient({ sections }: { sections: Record<string, Sect
         {/* Hero */}
         <section className="relative border-b overflow-hidden">
           <div className="absolute inset-0 -z-10">
-            <AnimatedGrid />
+            
             <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,_var(--tw-gradient-stops))] from-blue-500/10 via-transparent to-transparent" />
           </div>
           <div className="mx-auto max-w-6xl px-6 py-20 text-center">

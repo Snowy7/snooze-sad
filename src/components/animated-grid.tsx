@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 interface Bubble {
   x: number;
@@ -13,13 +13,37 @@ interface Bubble {
 
 export function AnimatedGrid() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsVisible(entry.isIntersecting);
+      },
+      { threshold: 0.1 } // Start animation when 10% is visible
+    );
+
+    if (canvasRef.current) {
+      observer.observe(canvasRef.current);
+    }
+
+    return () => {
+      if (canvasRef.current) {
+        observer.unobserve(canvasRef.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!isVisible) return;
+
     const canvas = canvasRef.current;
     if (!canvas) return;
 
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
+
+    let animationFrameId: number;
 
     // Set canvas size
     const resizeCanvas = () => {
@@ -32,22 +56,27 @@ export function AnimatedGrid() {
 
     // Grid configuration
     const gridSize = 50;
-    const dotSize = 2;
+    const dotSize = 1.5; // Slightly smaller dots
     let frame = 0;
 
     // Bubbles configuration
     const bubbles: Bubble[] = [];
-    const maxBubbles = 15;
+    const maxBubbles = 10; // Reduced number of bubbles
     
+    // Get theme once
+    const isDark = document.documentElement.classList.contains("dark");
+    const baseColor = isDark ? "150, 150, 170" : "120, 120, 140";
+    const lineOpacity = isDark ? 0.05 : 0.07;
+
     // Create initial bubbles
     for (let i = 0; i < maxBubbles; i++) {
       bubbles.push({
         x: Math.random() * canvas.offsetWidth,
         y: Math.random() * canvas.offsetHeight,
-        radius: Math.random() * 40 + 20,
-        speed: Math.random() * 0.3 + 0.1,
-        opacity: Math.random() * 0.3 + 0.1,
-        hue: Math.random() * 60 + 340, // Red to orange range
+        radius: Math.random() * 30 + 15, // Smaller bubbles
+        speed: Math.random() * 0.2 + 0.1, // Slower speed
+        opacity: Math.random() * 0.2 + 0.1,
+        hue: Math.random() * 50 + 330, // Tighter red/orange range
       });
     }
 
@@ -61,24 +90,15 @@ export function AnimatedGrid() {
       // Clear canvas
       ctx.clearRect(0, 0, width, height);
 
-      // Get theme
-      const isDark = document.documentElement.classList.contains("dark");
-      const baseColor = isDark ? "150, 150, 170" : "120, 120, 140";
-
-      // Draw grid lines
-      const lineOpacity = isDark ? 0.06 : 0.08;
+      // Draw grid lines (simplified)
       ctx.strokeStyle = `rgba(${baseColor}, ${lineOpacity})`;
-      ctx.lineWidth = 1;
-
-      // Vertical lines
+      ctx.lineWidth = 0.5;
       for (let x = 0; x < width; x += gridSize) {
         ctx.beginPath();
         ctx.moveTo(x, 0);
         ctx.lineTo(x, height);
         ctx.stroke();
       }
-
-      // Horizontal lines
       for (let y = 0; y < height; y += gridSize) {
         ctx.beginPath();
         ctx.moveTo(0, y);
@@ -86,71 +106,41 @@ export function AnimatedGrid() {
         ctx.stroke();
       }
 
-      // Draw grid dots with wave animation
-      for (let x = 0; x < width; x += gridSize) {
-        for (let y = 0; y < height; y += gridSize) {
-          const distance = Math.sqrt(
-            Math.pow(x - width / 2, 2) + Math.pow(y - height / 2, 2)
-          );
-          const wave = Math.sin(distance * 0.01 - frame * 0.02);
-          const opacity = 0.15 + wave * 0.1;
-
-          ctx.fillStyle = `rgba(${baseColor}, ${opacity})`;
-          ctx.beginPath();
-          ctx.arc(x, y, dotSize, 0, Math.PI * 2);
-          ctx.fill();
-        }
-      }
-
       // Draw and update bubbles
       bubbles.forEach((bubble) => {
-        // Update position
         bubble.y -= bubble.speed;
-        
-        // Reset bubble if it goes off screen
         if (bubble.y + bubble.radius < 0) {
           bubble.y = height + bubble.radius;
           bubble.x = Math.random() * width;
         }
 
-        // Draw bubble with gradient
-        const gradient = ctx.createRadialGradient(
-          bubble.x, bubble.y, 0,
-          bubble.x, bubble.y, bubble.radius
-        );
-        
-        gradient.addColorStop(0, `hsla(${bubble.hue}, 70%, 60%, ${bubble.opacity * 0.4})`);
-        gradient.addColorStop(0.5, `hsla(${bubble.hue}, 70%, 50%, ${bubble.opacity * 0.2})`);
+        const gradient = ctx.createRadialGradient(bubble.x, bubble.y, 0, bubble.x, bubble.y, bubble.radius);
+        gradient.addColorStop(0, `hsla(${bubble.hue}, 70%, 60%, ${bubble.opacity * 0.3})`);
         gradient.addColorStop(1, `hsla(${bubble.hue}, 70%, 40%, 0)`);
 
         ctx.fillStyle = gradient;
         ctx.beginPath();
         ctx.arc(bubble.x, bubble.y, bubble.radius, 0, Math.PI * 2);
         ctx.fill();
-
-        // Draw bubble highlight
-        ctx.fillStyle = `hsla(${bubble.hue}, 80%, 80%, ${bubble.opacity * 0.3})`;
-        ctx.beginPath();
-        ctx.arc(bubble.x - bubble.radius * 0.3, bubble.y - bubble.radius * 0.3, bubble.radius * 0.3, 0, Math.PI * 2);
-        ctx.fill();
       });
 
       frame++;
-      requestAnimationFrame(animate);
+      animationFrameId = requestAnimationFrame(animate);
     };
 
     animate();
 
     return () => {
       window.removeEventListener("resize", resizeCanvas);
+      cancelAnimationFrame(animationFrameId);
     };
-  }, []);
+  }, [isVisible]);
 
   return (
     <canvas
       ref={canvasRef}
       className="absolute inset-0 w-full h-full pointer-events-none"
-      style={{ opacity: 0.6 }}
+      style={{ opacity: 0.5 }} // Slightly reduced opacity
     />
   );
 }
