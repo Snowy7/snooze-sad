@@ -16,6 +16,7 @@ import { AccentColorPicker } from "@/components/accent-color-picker"
 import { useAccent } from "@/contexts/accent-context"
 import { useMutation, useQuery } from "convex/react"
 import { api } from "@/lib/convex"
+import { BoardLayout } from "@/components/board-layout"
 
 export default function SettingsPage() {
   const { user } = useAuth()
@@ -96,8 +97,9 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="space-y-6 p-6 max-w-4xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <div>
+    <BoardLayout>
+      <div className="space-y-6 p-6 max-w-4xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <div>
         <h1 className="text-2xl font-bold">Settings</h1>
         <p className="text-sm text-muted-foreground">Manage your account and preferences</p>
       </div>
@@ -377,5 +379,6 @@ export default function SettingsPage() {
         </div>
       </Card>
     </div>
+    </BoardLayout>
   )
 }

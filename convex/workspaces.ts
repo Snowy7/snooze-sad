@@ -358,3 +358,49 @@ export const updateMemberRole = mutation({
   },
 });
 
+// Alias for listMembers (for legacy compatibility)
+export const getWorkspaceMembers = listMembers;
+
+// Update last visited page for a workspace
+export const updateLastVisitedPage = mutation({
+  args: {
+    workspaceId: v.id("workspaces"),
+    path: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const userId = await getUserId(ctx);
+    if (!userId) return;
+
+    // Find membership
+    const membership = await ctx.db
+      .query("workspaceMembers")
+      .withIndex("by_workspace_and_user", (q) => 
+        q.eq("workspaceId", args.workspaceId).eq("userId", userId)
+      )
+      .unique();
+
+    if (membership) {
+      await ctx.db.patch(membership._id, {
+        lastVisitedPage: args.path,
+      });
+    }
+  },
+});
+
+// Get last visited page for current user in a workspace
+export const getLastVisitedPage = query({
+  args: { workspaceId: v.id("workspaces") },
+  handler: async (ctx, { workspaceId }) => {
+    const userId = await getUserId(ctx);
+    if (!userId) return null;
+
+    const membership = await ctx.db
+      .query("workspaceMembers")
+      .withIndex("by_workspace_and_user", (q) => 
+        q.eq("workspaceId", workspaceId).eq("userId", userId)
+      )
+      .unique();
+
+    return membership?.lastVisitedPage || null;
+  },
+});

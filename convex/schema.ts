@@ -32,6 +32,7 @@ export default defineSchema({
     userId: v.string(), // External user ID from WorkOS
     role: v.string(), // owner, admin, member, viewer
     joinedAt: v.number(),
+    lastVisitedPage: v.optional(v.string()), // Store last visited path in workspace
   }).index("by_workspace_id", ["workspaceId"]).index("by_user", ["userId"]).index("by_workspace_and_user", ["workspaceId", "userId"]),
 
   projects: defineTable({
@@ -63,100 +64,9 @@ export default defineSchema({
     order: v.optional(v.number()),
     isActive: v.boolean(), // Can be toggled on/off
     createdAt: v.number(),
-  }).index("by_owner", ["ownerId"]),
-
-  tasks: defineTable({
-    projectId: v.optional(v.id("projects")),
-    ownerId: v.optional(v.string()),
-    title: v.string(),
-    description: v.optional(v.string()),
-    status: v.optional(v.string()), // backlog, in_progress, in_review, stuck, done
-    priority: v.optional(v.string()), // low, medium, high, critical
-    assigneeId: v.optional(v.string()),
-    assignees: v.optional(v.array(v.string())), // Multiple assignees
-    labels: v.optional(v.array(v.string())),
-    tags: v.optional(v.array(v.string())),
-    milestoneId: v.optional(v.id("milestones")),
-    sprintId: v.optional(v.id("sprints")),
-    estimatedHours: v.optional(v.number()),
-    startDate: v.optional(v.string()),
-    endDate: v.optional(v.string()),
-    isDaily: v.optional(v.boolean()),
-    date: v.optional(v.string()), // for daily tasks
-    templateId: v.optional(v.id("dailyTaskTemplates")), // Link to template if created from one
-    order: v.optional(v.number()),
-    storyPoints: v.optional(v.number()),
-    createdAt: v.number(),
     updatedAt: v.optional(v.number()),
-  }).index("by_project", ["projectId"]).index("by_date", ["date"]).index("by_owner", ["ownerId"]).index("by_milestone", ["milestoneId"]).index("by_sprint", ["sprintId"]).index("by_template", ["templateId"]),
-  
-  subtasks: defineTable({
-    taskId: v.id("tasks"),
-    title: v.string(),
-    completed: v.boolean(),
-    order: v.optional(v.number()),
-    createdAt: v.number(),
-  }).index("by_task", ["taskId"]),
-  
-  comments: defineTable({
-    taskId: v.id("tasks"),
-    userId: v.string(),
-    content: v.string(),
-    createdAt: v.number(),
-    updatedAt: v.optional(v.number()),
-  }).index("by_task", ["taskId"]).index("by_user", ["userId"]),
-
-  notes: defineTable({
-    title: v.string(),
-    content: v.optional(v.string()),
-    ownerId: v.string(),
-    projectId: v.optional(v.id("projects")),
-    createdAt: v.number(),
-  }).index("by_owner", ["ownerId"]).index("by_project", ["projectId"]),
-
-  timelogs: defineTable({
-    taskId: v.string(),
-    userId: v.string(),
-    start: v.string(),
-    end: v.optional(v.string()),
-    duration: v.optional(v.number()),
-  }).index("by_task", ["taskId"]).index("by_user", ["userId"]),
-
-  habits: defineTable({
-    title: v.string(),
-    description: v.optional(v.string()),
-    ownerId: v.string(),
-    frequency: v.string(), // daily, weekly, custom
-    targetDays: v.optional(v.array(v.number())), // 0-6 for days of week
-    createdAt: v.number(),
-  }).index("by_owner", ["ownerId"]),
-
-  habitLogs: defineTable({
-    habitId: v.id("habits"),
-    date: v.string(), // YYYY-MM-DD
-    completed: v.boolean(),
-    note: v.optional(v.string()),
-    createdAt: v.number(),
-  }).index("by_habit", ["habitId"]).index("by_date", ["date"]).index("by_habit_and_date", ["habitId", "date"]),
-
-  milestones: defineTable({
-    projectId: v.id("projects"),
-    title: v.string(),
-    description: v.optional(v.string()),
-    dueDate: v.optional(v.string()),
-    status: v.optional(v.string()), // planned, in_progress, completed
-    createdAt: v.number(),
-  }).index("by_project", ["projectId"]),
-
-  sprints: defineTable({
-    projectId: v.id("projects"),
-    name: v.string(),
-    goal: v.optional(v.string()),
-    startDate: v.string(),
-    endDate: v.string(),
-    status: v.optional(v.string()), // planned, active, completed
-    createdAt: v.number(),
-  }).index("by_project", ["projectId"]),
+  }).index("by_owner", ["ownerId"])
+    .index("by_owner_and_active", ["ownerId", "isActive"]),
 
   invitations: defineTable({
     workspaceId: v.id("workspaces"),
@@ -181,16 +91,20 @@ export default defineSchema({
   }).index("by_user", ["userId"]).index("by_user_and_read", ["userId", "read"]),
 
   activities: defineTable({
-    workspaceId: v.id("workspaces"),
+    workspaceId: v.optional(v.id("workspaces")),
     projectId: v.optional(v.id("projects")),
     taskId: v.optional(v.id("tasks")),
+    workItemId: v.optional(v.id("workItems")), // New unified work items
     userId: v.string(),
-    action: v.string(), // created, updated, deleted, commented, etc
-    entityType: v.string(), // project, task, workspace, etc
+    action: v.string(), // created, updated, deleted, commented, status_changed, assigned, etc
+    entityType: v.string(), // project, task, workspace, workItem, etc
     entityId: v.string(),
+    field: v.optional(v.string()), // Field that was changed
+    oldValue: v.optional(v.string()), // Previous value
+    newValue: v.optional(v.string()), // New value
     metadata: v.optional(v.any()),
     createdAt: v.number(),
-  }).index("by_workspace", ["workspaceId"]).index("by_project", ["projectId"]).index("by_user", ["userId"]),
+  }).index("by_workspace", ["workspaceId"]).index("by_project", ["projectId"]).index("by_user", ["userId"]).index("by_work_item", ["workItemId"]),
 
   files: defineTable({
     name: v.string(),
@@ -225,6 +139,206 @@ export default defineSchema({
     vote: v.union(v.literal("up"), v.literal("down"), v.number()), // Support legacy numeric votes
     createdAt: v.number(),
   }).index("by_feature", ["featureRequestId"]).index("by_user", ["userId"]).index("by_feature_and_user", ["featureRequestId", "userId"]),
+
+  // ===== NEW UNIFIED BOARD SYSTEM =====
+  // Unified work items - replacing separate projects, tasks, notes, etc.
+  workItems: defineTable({
+    workspaceId: v.optional(v.id("workspaces")),
+    parentId: v.optional(v.id("workItems")), // For hierarchical relationships
+    ownerId: v.string(), // User who created it
+    type: v.string(), // project, task, milestone, subtask, note, document, daily, widget, chart
+    title: v.string(),
+    description: v.optional(v.string()),
+    status: v.optional(v.string()), // backlog, in_progress, in_review, stuck, done, etc.
+    priority: v.optional(v.string()), // low, medium, high, critical
+    assignees: v.optional(v.array(v.string())), // Multiple assignees
+    startDate: v.optional(v.string()),
+    endDate: v.optional(v.string()),
+    repeat: v.optional(v.string()), // For recurring tasks
+    estimatedHours: v.optional(v.number()),
+    trackedHours: v.optional(v.number()),
+    order: v.optional(v.number()), // For sorting
+    tags: v.optional(v.array(v.string())),
+    customFields: v.optional(v.any()), // JSON for flexible data
+    isArchived: v.optional(v.boolean()),
+    color: v.optional(v.string()), // For projects/categories
+    content: v.optional(v.string()), // For notes content
+    metadata: v.optional(v.any()), // Additional type-specific data
+    createdAt: v.number(),
+    updatedAt: v.optional(v.number()),
+  })
+    .index("by_workspace", ["workspaceId"])
+    .index("by_parent", ["parentId"])
+    .index("by_owner", ["ownerId"])
+    .index("by_type", ["type"])
+    .index("by_workspace_and_type", ["workspaceId", "type"]),
+
+  // Links between work items (dependencies, relationships)
+  workItemLinks: defineTable({
+    fromItemId: v.id("workItems"),
+    toItemId: v.id("workItems"),
+    linkType: v.string(), // depends_on, blocks, relates_to, parent_of, etc.
+    metadata: v.optional(v.any()),
+    createdAt: v.number(),
+  })
+    .index("by_from", ["fromItemId"])
+    .index("by_to", ["toItemId"]),
+
+  // Comments on work items
+  comments: defineTable({
+    workItemId: v.id("workItems"),
+    authorId: v.string(), // User who wrote the comment
+    content: v.string(),
+    createdAt: v.number(),
+    updatedAt: v.optional(v.number()),
+    isEdited: v.optional(v.boolean()),
+  })
+    .index("by_work_item", ["workItemId"])
+    .index("by_author", ["authorId"]),
+
+  // Checklists for work items
+  checklists: defineTable({
+    workItemId: v.id("workItems"),
+    title: v.string(),
+    items: v.array(v.object({
+      id: v.string(),
+      text: v.string(),
+      completed: v.boolean(),
+      order: v.number(),
+    })),
+    createdAt: v.number(),
+    updatedAt: v.optional(v.number()),
+  })
+    .index("by_work_item", ["workItemId"]),
+
+  // Project-wide tags
+  tags: defineTable({
+    projectId: v.id("projects"),
+    name: v.string(),
+    color: v.optional(v.string()),
+    createdAt: v.number(),
+    createdBy: v.string(),
+  })
+    .index("by_project", ["projectId"])
+    .index("by_project_and_name", ["projectId", "name"]),
+
+  // Graph/Board definitions
+  graphs: defineTable({
+    workspaceId: v.optional(v.id("workspaces")), // Optional for personal/daily graphs
+    name: v.string(),
+    description: v.optional(v.string()),
+    ownerId: v.string(),
+    type: v.string(), // dashboard, project_board, personal, daily, focus, etc.
+    isDefault: v.optional(v.boolean()), // Is this the default home board?
+    parentGraphId: v.optional(v.id("graphs")), // For nested sub-boards
+    settings: v.optional(v.any()), // Board-specific settings (zoom, filters, etc.)
+    createdAt: v.number(),
+    updatedAt: v.optional(v.number()),
+  })
+    .index("by_workspace", ["workspaceId"])
+    .index("by_owner", ["ownerId"])
+    .index("by_type", ["type"]),
+
+  // Nodes on the graph/board (positioned items)
+  graphNodes: defineTable({
+    graphId: v.id("graphs"),
+    workItemId: v.optional(v.id("workItems")), // Optional - some nodes might be pure UI elements
+    type: v.string(), // task-card, note, chart, widget, sub-board, etc.
+    props: v.optional(v.any()), // Node-specific properties
+    position: v.object({
+      x: v.number(),
+      y: v.number(),
+    }),
+    size: v.optional(v.object({
+      width: v.number(),
+      height: v.number(),
+    })),
+    zIndex: v.optional(v.number()),
+    style: v.optional(v.any()), // Custom styling
+    createdAt: v.number(),
+    updatedAt: v.optional(v.number()),
+  })
+    .index("by_graph", ["graphId"])
+    .index("by_work_item", ["workItemId"]),
+
+  // Visual connections between nodes on the board
+  graphEdges: defineTable({
+    graphId: v.id("graphs"),
+    sourceNodeId: v.id("graphNodes"),
+    targetNodeId: v.id("graphNodes"),
+    workItemLinkId: v.optional(v.id("workItemLinks")), // Optional link to logical relationship
+    type: v.string(), // visual, dependency, flow, etc.
+    style: v.optional(v.any()), // Edge styling
+    createdAt: v.number(),
+  })
+    .index("by_graph", ["graphId"])
+    .index("by_source", ["sourceNodeId"])
+    .index("by_target", ["targetNodeId"]),
+
+  // ===== LEGACY TABLES (for backward compatibility) =====
+  // These tables are deprecated but kept for existing code compatibility
+  // New code should use workItems instead
+  
+  tasks: defineTable({
+    projectId: v.optional(v.id("projects")),
+    title: v.string(),
+    description: v.optional(v.string()),
+    status: v.optional(v.string()),
+    priority: v.optional(v.string()),
+    assignees: v.optional(v.array(v.string())),
+    dueDate: v.optional(v.string()),
+    createdBy: v.optional(v.string()),
+    createdAt: v.number(),
+    updatedAt: v.optional(v.number()),
+  }).index("by_project", ["projectId"]),
+
+  sprints: defineTable({
+    projectId: v.id("projects"),
+    name: v.string(),
+    goal: v.optional(v.string()),
+    startDate: v.optional(v.string()),
+    endDate: v.optional(v.string()),
+    status: v.optional(v.string()),
+    createdBy: v.optional(v.string()),
+    createdAt: v.number(),
+    updatedAt: v.optional(v.number()),
+  }).index("by_project", ["projectId"]),
+
+  milestones: defineTable({
+    projectId: v.id("projects"),
+    name: v.string(),
+    description: v.optional(v.string()),
+    dueDate: v.optional(v.string()),
+    status: v.optional(v.string()),
+    progress: v.optional(v.number()),
+    createdBy: v.optional(v.string()),
+    createdAt: v.number(),
+    updatedAt: v.optional(v.number()),
+  }).index("by_project", ["projectId"]),
+
+  taskLists: defineTable({
+    projectId: v.id("projects"),
+    name: v.string(),
+    description: v.optional(v.string()),
+    order: v.optional(v.number()),
+    createdBy: v.optional(v.string()),
+    createdAt: v.number(),
+    updatedAt: v.optional(v.number()),
+  }).index("by_project", ["projectId"]),
+
+  taskAssignments: defineTable({
+    taskId: v.union(v.id("tasks"), v.id("workItems")), // Support both legacy tasks and new workItems
+    sprintId: v.optional(v.id("sprints")),
+    milestoneId: v.optional(v.id("milestones")),
+    taskListId: v.optional(v.id("taskLists")),
+    assignedBy: v.optional(v.string()),
+    assignedAt: v.optional(v.number()),
+    createdAt: v.optional(v.number()),
+  })
+    .index("by_task", ["taskId"])
+    .index("by_sprint", ["sprintId"])
+    .index("by_milestone", ["milestoneId"])
+    .index("by_task_list", ["taskListId"]),
 });
 
 

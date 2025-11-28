@@ -4,6 +4,7 @@ import { createContext, useContext, useState, useEffect, ReactNode } from "react
 import { useQuery } from "convex/react"
 import { api } from "@/lib/convex"
 import { Id } from "../../convex/_generated/dataModel"
+import { usePathname } from "next/navigation"
 
 interface WorkspaceContextType {
   currentWorkspaceId: Id<"workspaces"> | null
@@ -11,12 +12,16 @@ interface WorkspaceContextType {
   workspaces: any[]
   currentWorkspace: any
   isLoading: boolean
+  isSwitching: boolean
 }
 
 const WorkspaceContext = createContext<WorkspaceContextType | undefined>(undefined)
 
 export function WorkspaceProvider({ children }: { children: ReactNode }) {
   const [currentWorkspaceId, setCurrentWorkspaceId] = useState<Id<"workspaces"> | null>(null)
+  const [isSwitching, setIsSwitching] = useState(false)
+  const [previousWorkspaceId, setPreviousWorkspaceId] = useState<Id<"workspaces"> | null>(null)
+  const pathname = usePathname()
   
   // Fetch all user workspaces
   const workspaces = useQuery(api.workspaces.listMyWorkspaces) || []
@@ -27,9 +32,28 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     currentWorkspaceId ? { workspaceId: currentWorkspaceId } : "skip"
   )
 
-  // Auto-select first workspace on load
+  // Extract workspace ID from URL if present
   useEffect(() => {
-    if (!currentWorkspaceId && workspaces.length > 0) {
+    const match = pathname.match(/\/workspaces\/([^\/]+)/)
+    if (match && match[1]) {
+      const urlWorkspaceId = match[1] as Id<"workspaces">
+      // Verify it's a valid workspace the user has access to
+      if (workspaces && workspaces.length > 0 && workspaces.some(w => w._id === urlWorkspaceId)) {
+        if (currentWorkspaceId !== urlWorkspaceId) {
+          setCurrentWorkspaceId(urlWorkspaceId)
+        }
+      } else if (workspaces && workspaces.length > 0 && !workspaces.some(w => w._id === urlWorkspaceId)) {
+        // User doesn't have access to this workspace, redirect to personal dashboard
+        console.warn("User does not have access to workspace:", urlWorkspaceId)
+        // Redirect to personal dashboard instead of trying to find another workspace
+        window.location.href = "/personal"
+      }
+    }
+  }, [pathname, workspaces, currentWorkspaceId])
+
+  // Auto-select first workspace on load (fallback)
+  useEffect(() => {
+    if (!currentWorkspaceId && workspaces.length > 0 && !pathname.includes("/workspaces/")) {
       // Try to load from localStorage first
       const savedWorkspaceId = localStorage.getItem("currentWorkspaceId")
       if (savedWorkspaceId && workspaces.some(w => w._id === savedWorkspaceId)) {
@@ -38,7 +62,32 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
         setCurrentWorkspaceId(workspaces[0]._id)
       }
     }
-  }, [workspaces, currentWorkspaceId])
+  }, [workspaces, currentWorkspaceId, pathname])
+
+  // Track workspace switching
+  useEffect(() => {
+    if (currentWorkspaceId && previousWorkspaceId && currentWorkspaceId !== previousWorkspaceId) {
+      setIsSwitching(true)
+      
+      // Set a maximum timeout, but also check if currentWorkspace is loaded
+      const timer = setTimeout(() => {
+        setIsSwitching(false)
+      }, 500) // Reduced from 800ms
+      
+      return () => clearTimeout(timer)
+    }
+    
+    if (currentWorkspaceId) {
+      setPreviousWorkspaceId(currentWorkspaceId)
+    }
+  }, [currentWorkspaceId, previousWorkspaceId])
+
+  // Auto-disable switching state when workspace data is loaded
+  useEffect(() => {
+    if (isSwitching && currentWorkspace) {
+      setIsSwitching(false)
+    }
+  }, [currentWorkspace, isSwitching])
 
   // Save to localStorage when changed
   useEffect(() => {
@@ -57,6 +106,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
         workspaces,
         currentWorkspace,
         isLoading,
+        isSwitching,
       }}
     >
       {children}

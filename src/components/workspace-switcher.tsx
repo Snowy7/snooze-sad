@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { useWorkspace } from "@/contexts/workspace-context"
-import { useRouter } from "next/navigation"
+import { useRouter, usePathname } from "next/navigation"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,6 +19,7 @@ import { api } from "@/lib/convex"
 
 export function WorkspaceSwitcher() {
   const router = useRouter()
+  const pathname = usePathname()
   const { currentWorkspaceId, setCurrentWorkspaceId, workspaces, currentWorkspace } = useWorkspace()
   const [dropdownOpen, setDropdownOpen] = useState(false)
   
@@ -32,7 +33,7 @@ export function WorkspaceSwitcher() {
     return (
       <Button
         variant="outline"
-        className="w-full justify-start"
+        className="w-full justify-start h-10"
         onClick={() => router.push("/workspaces/new")}
       >
         <Plus className="mr-2 h-4 w-4" />
@@ -47,24 +48,24 @@ export function WorkspaceSwitcher() {
         <DropdownMenuTrigger asChild>
           <Button
             variant="ghost"
-            className="w-full justify-start h-auto py-2 px-2 hover:bg-accent/50 transition-colors"
+            className="w-full justify-start h-10 px-2 hover:bg-accent/50 transition-colors"
           >
             <div className="flex items-center gap-2 overflow-hidden flex-1">
-              <div className="h-8 w-8 rounded-lg accent-bg flex items-center justify-center flex-shrink-0">
-                <Building2 className="h-4 w-4 text-white" />
+              <div className="h-6 w-6 rounded-lg accent-bg flex items-center justify-center flex-shrink-0">
+                <Building2 className="h-3 w-3 text-white" />
               </div>
               <div className="flex flex-col items-start overflow-hidden flex-1">
-                <span className="truncate text-sm font-medium w-full text-left">
+                <span className="truncate text-xs font-medium w-full text-left">
                   {currentWorkspace?.name || "Select workspace"}
                 </span>
                 {members && members.length > 0 && (
-                  <span className="text-xs text-muted-foreground flex items-center gap-1">
-                    <Users className="h-3 w-3" />
-                    {members.length} {members.length === 1 ? 'member' : 'members'}
+                  <span className="text-[10px] text-muted-foreground flex items-center gap-1">
+                    <Users className="h-2 w-2" />
+                    {members.length}
                   </span>
                 )}
               </div>
-              <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50 ml-auto" />
+              <ChevronsUpDown className="h-3 w-3 shrink-0 opacity-50 ml-auto" />
             </div>
           </Button>
         </DropdownMenuTrigger>
@@ -104,6 +105,21 @@ export function WorkspaceSwitcher() {
               onSelect={() => {
                 setCurrentWorkspaceId(workspace._id)
                 setDropdownOpen(false)
+                
+                // Navigate to the same sub-page in the new workspace if applicable
+                if (pathname.includes("/workspaces/")) {
+                  const pathParts = pathname.split("/").filter(Boolean) // Remove empty strings
+                  // pathParts is now: ['workspaces', 'old_id', 'subpage', ...]
+                  // Index 2 onwards is the subpage and deeper routes
+                  if (pathParts.length > 2) {
+                    const subRoutes = pathParts.slice(2).join("/") // Get everything after workspace ID
+                    router.push(`/workspaces/${workspace._id}/${subRoutes}`)
+                  } else {
+                    router.push(`/workspaces/${workspace._id}`)
+                  }
+                } else {
+                  router.push(`/workspaces/${workspace._id}`)
+                }
               }}
               className="cursor-pointer"
             >

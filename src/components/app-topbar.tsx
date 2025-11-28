@@ -30,7 +30,7 @@ export function AppTopbar() {
   // Fetch project data if needed (always call hooks, use skip when not needed)
   const projectId = isProjectRoute ? (segments[1] as Id<"projects">) : undefined
   const projectDetails = useQuery(
-    api.functions.getProjectDetails,
+    api.projects.getProjectDetails,
     projectId ? { projectId } : "skip"
   )
   
@@ -88,7 +88,6 @@ export function AppTopbar() {
             New
           </button>
         </Link>
-        <ModeToggle />
       </div>
     </header>
   )

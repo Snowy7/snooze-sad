@@ -32,6 +32,7 @@ import {
   Heading1, 
   Heading2, 
   Heading3,
+  Pilcrow as Paragraph, 
   Quote,
   Code,
   ImageIcon,
@@ -57,9 +58,23 @@ interface RichTextEditorProps {
   content: string
   onChange: (content: string) => void
   placeholder?: string
+  className?: string
+  padding?: string
+  showDragHandle?: boolean
+  showPlusButton?: boolean
+  minHeight?: string
 }
 
-export function RichTextEditor({ content, onChange, placeholder }: RichTextEditorProps) {
+export function RichTextEditor({ 
+  content, 
+  onChange, 
+  placeholder, 
+  className, 
+  padding = "px-4 sm:px-8 md:px-16 lg:px-32 xl:px-48 py-8",
+  showDragHandle = true,
+  showPlusButton = true,
+  minHeight = "min-h-[calc(100vh-12rem)]"
+}: RichTextEditorProps) {
   const [showSlashMenu, setShowSlashMenu] = useState(false)
   const [slashMenuPosition, setSlashMenuPosition] = useState<{ top: number; left: number } | null>(null)
   const [selectedCommandIndex, setSelectedCommandIndex] = useState(0)
@@ -150,7 +165,7 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
     },
     editorProps: {
       attributes: {
-        class: 'prose prose-sm sm:prose-base dark:prose-invert w-full focus:outline-none px-4 sm:px-8 md:px-16 lg:px-32 xl:px-48 py-8 min-h-[calc(100vh-12rem)]',
+        class: cn('prose prose-sm sm:prose-base dark:prose-invert w-full focus:outline-none', padding, minHeight),
       },
       handleKeyDown: (view, event) => {
         // Handle slash menu opening
@@ -448,38 +463,42 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
     <div className="w-full h-full relative" ref={editorRef}>
       <div className="w-full h-full overflow-y-auto">
         {/* Drag Handle Component */}
-        <DragHandle editor={editor}>
-          <div className="flex items-center gap-1">
-            <Button
-              size="sm"
-              variant="ghost"
-              className="h-7 w-7 p-0 hover:bg-accent rounded-md"
-              onClick={(e) => {
-                e.preventDefault()
-                e.stopPropagation()
-                if (!editor) return
-                const { from } = editor.state.selection
-                const coords = editor.view.coordsAtPos(from)
-                const editorRect = editorRef.current?.getBoundingClientRect()
-                if (editorRect) {
-                  setSlashMenuPosition({
-                    top: coords.top - editorRect.top + 24,
-                    left: coords.left - editorRect.left,
-                  })
-                  setShowSlashMenu(true)
-                  setSelectedCommandIndex(0)
-                  setSlashSearchQuery('')
-                  setSlashInsertPos(null) // No slash to delete when using Plus button
-                }
-              }}
-            >
-              <Plus className="h-4 w-4 text-muted-foreground" />
-            </Button>
-            <div className="h-7 w-7 flex items-center justify-center cursor-grab active:cursor-grabbing hover:bg-accent rounded-md transition-colors">
-              <GripVertical className="h-4 w-4 text-muted-foreground" />
+        {showDragHandle && (
+          <DragHandle editor={editor}>
+            <div className="flex items-center gap-1">
+              {showPlusButton && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-7 w-7 p-0 hover:bg-accent rounded-md"
+                  onClick={(e) => {
+                    e.preventDefault()
+                    e.stopPropagation()
+                    if (!editor) return
+                    const { from } = editor.state.selection
+                    const coords = editor.view.coordsAtPos(from)
+                    const editorRect = editorRef.current?.getBoundingClientRect()
+                    if (editorRect) {
+                      setSlashMenuPosition({
+                        top: coords.top - editorRect.top + 24,
+                        left: coords.left - editorRect.left,
+                      })
+                      setShowSlashMenu(true)
+                      setSelectedCommandIndex(0)
+                      setSlashSearchQuery('')
+                      setSlashInsertPos(null) // No slash to delete when using Plus button
+                    }
+                  }}
+                >
+                  <Plus className="h-4 w-4 text-muted-foreground" />
+                </Button>
+              )}
+              <div className="h-7 w-7 flex items-center justify-center cursor-grab active:cursor-grabbing hover:bg-accent rounded-md transition-colors">
+                <GripVertical className="h-4 w-4 text-muted-foreground" />
+              </div>
             </div>
-          </div>
-        </DragHandle>
+          </DragHandle>
+        )}
 
         {/* Slash Command Menu */}
         {showSlashMenu && slashMenuPosition && (
@@ -545,14 +564,14 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
           </div>
         )}
 
-        <EditorContent editor={editor} className="notion-editor max-w-full" />
+        <EditorContent editor={editor} className={cn("notion-editor max-w-full", className)} />
       </div>
 
       {/* Bubble Menu for Text Formatting */}
       {editor && (
         <BubbleMenu 
           editor={editor}
-          className="flex items-center gap-1 p-1 rounded-lg border bg-popover shadow-xl"
+          className="flex items-center gap-1 p-1 rounded-lg border bg-popover shadow-xl z-50"
         >
           {/* Text Style */}
           <DropdownMenu>
@@ -562,8 +581,9 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
                 <ChevronDown className="h-3 w-3" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent>
+            <DropdownMenuContent align="start" sideOffset={8} className="z-[9999]">
               <DropdownMenuItem onClick={() => editor.chain().focus().setParagraph().run()}>
+                <Paragraph className="h-4 w-4 mr-2" />
                 Paragraph
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}>

@@ -159,6 +159,43 @@ function WorkspaceCheckAndRender({ children }: { children: React.ReactNode }) {
     )
   }
   
+  // Render full layout with floating sidebar design
+  return (
+    <div className="relative h-screen overflow-hidden">
+      <main className="w-full h-full">
+        {children}
+      </main>
+      <SpotlightOnboarding />
+    </div>
+  )
+}
+
+// Keep old component but rename for backward compatibility if needed
+function WorkspaceCheckAndRenderOld({ children }: { children: React.ReactNode }) {
+  const router = useRouter()
+  const workspaces = useQuery(api.workspaces.listMyWorkspaces)
+  const dbUser = useQuery(api.users.getCurrentUserQuery)
+  
+  // Get current pathname synchronously
+  const currentPath = typeof window !== 'undefined' ? window.location.pathname : ''
+  
+  // NO AUTO-REDIRECT - Onboarding will handle workspace creation
+  
+  // Show loading while checking workspaces (but not if we're already on /workspaces/new)
+  if (workspaces === undefined && currentPath !== '/workspaces/new') {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="space-y-4 w-full max-w-md p-6 text-center">
+          <div className="flex items-center justify-center mb-8">
+            <div className="h-12 w-12 rounded-full bg-blue-500/20 animate-pulse" />
+          </div>
+          <h2 className="text-2xl font-semibold">Loading workspace...</h2>
+          <p className="text-sm text-muted-foreground">Please wait</p>
+        </div>
+      </div>
+    )
+  }
+  
   // Render full layout (don't show loading screen during redirect)
   return (
     <SidebarProvider>

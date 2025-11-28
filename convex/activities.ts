@@ -1,5 +1,6 @@
 import { v } from "convex/values";
-import { query } from "./_generated/server";
+import { query, mutation } from "./_generated/server";
+import { getCurrentUserOrThrow } from "./users";
 
 // Get workspace activities
 export const listWorkspaceActivities = query({
@@ -112,3 +113,73 @@ export const listProjectActivities = query({
   },
 });
 
+// Alias for backward compatibility
+export const listActivities = listWorkspaceActivities;
+
+// Get work item activities
+export const listWorkItemActivities = query({
+  args: {
+    workItemId: v.id("workItems"),
+  },
+  handler: async (ctx, args) => {
+    const activities = await ctx.db
+      .query("activities")
+      .withIndex("by_work_item", (q) => q.eq("workItemId", args.workItemId))
+      .order("desc")
+      .collect()
+
+    // Get user information for each activity
+    const activitiesWithUsers = await Promise.all(
+      activities.map(async (activity) => {
+        const user = await ctx.db
+          .query("users")
+          .filter((q) => q.eq(q.field("externalId"), activity.userId))
+          .first()
+
+        return {
+          ...activity,
+          user: user
+            ? {
+                id: user.externalId,
+                name: user.fullName || user.email,
+                email: user.email,
+                avatar: user.profilePictureUrl || user.avatar,
+              }
+            : null,
+        }
+      })
+    )
+
+    return activitiesWithUsers
+  },
+})
+
+// Create activity log for work item
+export const createActivity = mutation({
+  args: {
+    workItemId: v.id("workItems"),
+    action: v.string(),
+    field: v.optional(v.string()),
+    oldValue: v.optional(v.string()),
+    newValue: v.optional(v.string()),
+    metadata: v.optional(v.any()),
+  },
+  handler: async (ctx, args) => {
+    const user = await getCurrentUserOrThrow(ctx)
+
+    const activityId = await ctx.db.insert("activities", {
+      workItemId: args.workItemId,
+      userId: user.externalId!,
+      action: args.action,
+      entityType: "workItem",
+      entityId: args.workItemId,
+      field: args.field,
+      oldValue: args.oldValue,
+      newValue: args.newValue,
+      metadata: args.metadata,
+      createdAt: Date.now(),
+    })
+
+    return activityId
+  },
+})

@@ -58,7 +58,7 @@ export function CommandMenu() {
         if (e.key === "D" || e.key === "d") {
           e.preventDefault()
           e.stopPropagation()
-          router.push("/dashboard")
+          router.push("/personal")
           handled = true
         } else if (e.key === "T" || e.key === "t") {
           e.preventDefault()
